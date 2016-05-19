@@ -1,3 +1,6 @@
+# A. Lonsberry
+# May 2016
+# (Using python 3.4.4, and brian2 2.0rc)
 #
 # DESCRIPTION
 #   Two parts: (orkAround_1_0.py and workAround_1_1.py.
@@ -24,15 +27,16 @@ from joblib import Parallel, delayed
 # Regular non-parallel version (Works fine)
 ########################################################################################################################
 #
-#alphaValues = numpy.array([0.,.2,.4,6,.8,1])
+alphaValues = numpy.array([0., .2, .4, .6,])
 #
 #
+#plt.figure(3)
 #for idx, alpha in enumerate(alphaValues):
-#    M1 = runSimulation(alpha)
-#    plt.subplot(alphaValues.shape[0],1,idx+1)
-#    plt.plot(M1.t, M1.R_hat[0], '-b')
+#     M1 = runSimulation(alpha)
+#     plt.subplot(alphaValues.shape[0],1,idx+1)
+#     plt.plot(M1.t, M1.R_hat[0], '-b')
 #
-#plt.show()
+# plt.show()
 #
 ########################################################################################################################
 # Now try parallel version
@@ -40,6 +44,14 @@ from joblib import Parallel, delayed
 #
 #Must use 'main' with windows, or this will span an infinite number of threads of something
 if __name__ == '__main__':
-    a = Parallel(n_jobs=4)(delayed(runSimulation)(i) for i in numpy.linspace(start=.2, stop=.8, num=4))
+    #a = Parallel(n_jobs=4)(delayed(runSimulation)(i) for i in numpy.linspace(start=.2, stop=.8, num=4))
+    a = Parallel(n_jobs=4)(delayed(runSimulation)(i) for i in alphaValues)
     print(a)
     print(type(a))
+    print(a[0].shape)
+    plt.figure(4)
+    #plt.plot(a[0][0,:])
+    for idx, alpha in enumerate(alphaValues):
+        plt.subplot(len(a), 1, idx + 1)
+        plt.plot(a[idx][0,:], '-b')
+    plt.show()

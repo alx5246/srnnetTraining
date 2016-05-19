@@ -1,3 +1,6 @@
+# A. Lonsberry
+# May 2016
+# (Using python 3.4.4, and brian2 2.0rc)
 #
 # DESCRIPTION
 #   Two parts: this files (workAround_1_0.py) and workAround_1_1.py.
@@ -28,7 +31,7 @@ def runSimulation(alpha):
 
     # Setting compilation for simpley compiling inside a for-loop (this gets called inside a for-loop outside), and not
     # with anything multiprocessing.
-    #evice.reinit()
+    #device.reinit()
     #buildDirectory = 'standalone{}'.format(os.getpid())
     #set_device('cpp_standalone', build_on_run=False)
 
@@ -70,7 +73,7 @@ def runSimulation(alpha):
     """
 
     # Make Neuron Group, where we have one neuron now for each different iteration of the values we care about
-    G = NeuronGroup(1, model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms)
+    G = NeuronGroup(1, model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
 
     P = PoissonGroup(100, numpy.arange(100) * .2 * Hz + .2 * Hz)
 
@@ -89,10 +92,10 @@ def runSimulation(alpha):
     gamma = 50
     T = 5
     S = Synapses(P, G, model="""
-                             dw/dt = (alpha * w * (1 - R_hat / R_tar) * K) / (1*second)  : 1
+                             dw/dt = (alpha * w * (1 - R_hat / R_tar) * K) / (1*second)  : 1 (clock-driven)
                              dapre/dt = -apre / taupre : 1 (event-driven)
                              dapost/dt = -apost / taupost : 1 (event-driven)
-                             dR_hat/dt = -R_hat/tauR : 1
+                             dR_hat/dt = -R_hat/tauR : 1 (clock-driven)
                              K = R_hat / ( T * abs( 1 - R_hat / R_tar) * gamma) : 1
                              """,
                  on_pre="""
@@ -104,7 +107,8 @@ def runSimulation(alpha):
                              apost += Apost
                              w += beta * K * apre
                              R_hat += 1
-                             """)
+                             """,
+                 method='euler')
 
     # Connect all neurons in group 'P' to group 'G'
     S.connect()
@@ -127,7 +131,7 @@ def runSimulation(alpha):
     ########################################################################################################################
 
     # M0 = SpikeMonitor(P)
-    M1 = StateMonitor(S, ['R_hat'], record=[0])
+    M1 = StateMonitor(S, ['R_hat'], record=[0], dt=1*ms)
 
     ########################################################################################################################
     # RUN
@@ -149,7 +153,7 @@ def runSimulation(alpha):
     #
     # This does not work....
     #return M1 #apparently M1 is not picklable
-    print(type(M1.R_hat))
-    print(M1.R_hat)
+    #print(type(M1.R_hat))
+    #print(M1.R_hat)
     return M1.R_hat
 

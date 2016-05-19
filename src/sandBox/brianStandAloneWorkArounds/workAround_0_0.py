@@ -1,3 +1,6 @@
+# A. Lonsberry
+# May 2016
+# (Using python 3.4.4, and brian2 2.0rc)
 #
 # DESCRIPTION
 #   I am showing a simple example of how you can use one simulation, to test a number of parameters. This essentially
