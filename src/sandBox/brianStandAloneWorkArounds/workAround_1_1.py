@@ -3,11 +3,15 @@
 # (Using python 3.4.4, and brian2 2.0rc)
 #
 # DESCRIPTION
-#   Two parts: (orkAround_1_0.py and workAround_1_1.py.
+#   Two parts: (orkAround_1_0.py and workAround_1_1.py).
 #
 #   In the other file we encapsulate the simulation within a function called 'runSimulation', that takes input
 #   'alpha'. IMPORTANTLY at the top of the function we wet the device and all that so that the code gets compiled using
 #   c++.
+#
+#   In this file there are two parts. Part 1, run compiled simulation in a for-loop: below we have a for-loop that calls
+#   the function in the other python file that compiles the simulation and runs it. Part 2: compiled simulation that
+#   runs in parallel. In order to use either or, you have to comment out specific parts of the code.
 #
 #   In the file here, workAround_1_1.py, we call this function over and over again inside a for-loop. Each time we make
 #   a call to this function, there is overhead because we have to recompile each time. The overhead is worth it however

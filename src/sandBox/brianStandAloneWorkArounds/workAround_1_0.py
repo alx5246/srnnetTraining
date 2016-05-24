@@ -9,14 +9,23 @@
 #   'alpha'. IMPORTANTLY at the top of the function we wet the device and all that so that the code gets compiled using
 #   c++.
 #
+#   In this file there are two parts. Part 1, run compiled simulation in a for-loop: below we have a for-loop that calls
+#   the function in the other python file that compiles the simulation and runs it. Part 2: compiled simulation that
+#   runs in parallel. In order to use either or, you have to comment out specific parts of the code.
+#
 #   In the second file workAround_1_1.py, we call this function over and over again inside a for-loop. Each time we make
 #   a call to this function, there is overhead because we have to recompile each time. The overhead is worth it however
 #   if the simulation has lots of dynamics.
 #
+#   In this file there are two parts. Part 1, run compiled simulation in a for-loop: below we have a for-loop that calls
+#   the function in the other python file that compiles the simulation and runs it. Part 2: compiled simulation that
+#   runs in parallel. In order to use either or, you have to comment out specific parts of the code.
+#
 #   An important fact is that in order for this encapsulation inside a function to work correctly you have to add a line
 #   with 'device.reinit()'. I found this on the brian forum. The reason being is we want the compiler to forget about
 #   prior iterations or prior calls of this simulation. Without the 'device.reinit()' this function will work once but
-#   will fail the next time it is called.
+#   will fail the next time it is called. I am not sure where to really put this 'device.reinit()' call though.
+#   https://groups.google.com/forum/#!searchin/brian-development/device.reinit()/brian-development/fGrtG7M212k/UwNQC-bAaCwJ
 
 from brian2 import *
 import numpy
@@ -39,7 +48,6 @@ def runSimulation(alpha):
     device.reinit()
     buildDirectory = 'standalone{}'.format(os.getpid())
     set_device('cpp_standalone', build_on_run=False)
-
 
     ########################################################################################################################
     # Setting up General Simultation
@@ -145,15 +153,6 @@ def runSimulation(alpha):
 
     # Setting compilation for simpley compiling inside a for-loop while the for-loop is also includes parallel processing
     run(600 * second, report='text')
-    device.build(directory=buildDirectory, compile=True, run=True, debug=False)
-    #
-    # If I give a simple dummy output this seems to work, but what about stuff I actually want out?
-    #aRa = [1, 3, 4]
-    #return aRa
-    #
-    # This does not work....
-    #return M1 #apparently M1 is not picklable
-    #print(type(M1.R_hat))
-    #print(M1.R_hat)
-    return M1.R_hat
+    device.build(directory=buildDirectory, compile=True, run=True, debug=False) #Now we actually build the code
+    return M1.R_hat #Seems to break when returning the M1 object, but is okay with returning an array
 
