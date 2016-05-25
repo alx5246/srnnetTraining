@@ -27,11 +27,15 @@ from workAround_1_0 import runSimulation
 import numpy
 from joblib import Parallel, delayed
 
+
+#Input values into the function
+alphaValues = numpy.array([0., .2, .4, .6,])
+
 ########################################################################################################################
 # Regular non-parallel version (Works fine)
 ########################################################################################################################
 #
-alphaValues = numpy.array([0., .2, .4, .6,])
+#
 #
 #
 #plt.figure(3)

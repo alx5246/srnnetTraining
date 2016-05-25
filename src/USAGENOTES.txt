@@ -1,0 +1,12 @@
+May 2016
+A. Lonsberry
+
+(1) GIT and which code to upload
+
+    (1.A) Make sure to ignore certian files using the .gitignre file. In the least include the following lines,
+          .idea/*
+          *.pyc
+          .gitignore
+
+    (1.B) Do not include compiled code. When you compile a standalone brian2 file, it will generate cpp files, make sure
+          not to include these files.

@@ -33,18 +33,29 @@ import numpy.matlib
 import os
 
 def runSimulation(alpha):
+    """
+    FUNCTION DESCRIPTION
+        This function takes as input a value for alpha, compiles a stand-alone simulation in c++, runs the simulation,
+        and returns some ouput. The input alpha, is a parameter from the synaptic plasticity equations (Carlson et al.
+        2013)
+
+    :param alpha: scalar, domain [0, 1]
+    :return:
+    """
 
     ########################################################################################################################
     # Setting up Simultation Comilation
     ########################################################################################################################
+    #Comment out the code appropriately. The top-section of code applies to running this method from a for-loop. The
+    #bottom section applies to running parallel function calls.
 
-    # Setting compilation for simpley compiling inside a for-loop (this gets called inside a for-loop outside), and not
+    # Setting compilation for simply compiling inside a for-loop (this gets called inside a for-loop outside), and not
     # with anything multiprocessing.
     #device.reinit()
     #buildDirectory = 'standalone{}'.format(os.getpid())
     #set_device('cpp_standalone', build_on_run=False)
 
-    # Setting compilation for simpley compiling inside a for-loop while the for-loop is also includes parallel processing
+    # Setting compilation for for running parallel execution of this method
     device.reinit()
     buildDirectory = 'standalone{}'.format(os.getpid())
     set_device('cpp_standalone', build_on_run=False)
@@ -144,6 +155,9 @@ def runSimulation(alpha):
     ########################################################################################################################
     # RUN
     ########################################################################################################################
+    # Comment out the code appropriately. The top-section of code applies to running this method from a for-loop. The
+    # bottom section applies to running parallel function calls.
+
 
     # Setting compilation for simpley compiling inside a for-loop (this gets called inside a for-loop outside), and not
     # with anything multiprocessing.
@@ -151,7 +165,7 @@ def runSimulation(alpha):
     #device.build(directory=buildDirectory, compile=True, run=True, debug=False)
     #return M1  # This works fine without multiprocess
 
-    # Setting compilation for simpley compiling inside a for-loop while the for-loop is also includes parallel processing
+    # Setting compilation for for running parallel execution of this method
     run(600 * second, report='text')
     device.build(directory=buildDirectory, compile=True, run=True, debug=False) #Now we actually build the code
     return M1.R_hat #Seems to break when returning the M1 object, but is okay with returning an array
