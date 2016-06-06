@@ -24,3 +24,7 @@ FILES AND FOLDERS
     of some neuron. The file firingRateDistrib_0_0.py, has the function to actually do the calculations. The file
     firingRateDistrib_0_1.py has code to call that function, and plot out the results so we can see the function is
     working as expected.
+
+    (3) SpikeCount.py
+    Short Description: spike count over time subintervals
+    Long Description
