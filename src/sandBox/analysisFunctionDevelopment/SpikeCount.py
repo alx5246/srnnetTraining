@@ -24,7 +24,7 @@ def spike_count(time, duration, dt):
 
     :param time: 1D numpy.array, units are seconds, neuron spike times stored in an numpy.array
     :param duration: the duration on the data collection run
-    :param dt: user defined time subinteval over which to count spik
+    :param dt: user defined time subinteval over which to count spike
     """
 
 
