@@ -28,20 +28,19 @@ def spike_count(time, duration, dt):
     """
 
 
-#Spike time array
+#Spike time turned into a numpy array
 time = np.array(time)
 
 #Interval array - intervals in which to break up the time array - sub time interval array
-n = duration/dt                                 #How many subintervals from time horizun results from user defined interval
-splitInterval = np.linspace(0, duration, n+1)
+n = duration/dt                                 #How many subintervals from time horizon results from user defined interval
+splitInterval = np.linspace(0, duration, n+1)   #create numpy array of subinterval over which to count spikes
 print splitInterval
-spikeCounter = []
 
 i=0     #inex for time array
 j=0     #index for splitInterval array.
 k=0     #index for new matrix that will store the grouped values from the split time array
-counter = 0
-SpikeCount = []
+counter = 0     #counter variable to keep track of spike count for each subinterval through loop
+SpikeCount = []     #Initialize array to collect the number of spikes occuring wihtin each subinterval
 
 for i in xrange(len(time)):
     if (time[i] >= splitInterval[j]) & (time[i] <= splitInterval[j+1]):
