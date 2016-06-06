@@ -101,5 +101,5 @@ def instant_firing_rate(spikeTrain, startTime, endTime, dt=.001, filterType = 'G
     #-------------------------------------------------------------------------------------------------------------------
     # Output
     #-------------------------------------------------------------------------------------------------------------------
-    return [convolvedVector, timeVector]
+    # return [convolvedVector, timeVector]
 

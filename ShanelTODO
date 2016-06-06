@@ -2,6 +2,6 @@ Shanel's TODO list
 
 (1) Create method/function to analzye firing rates as in (Lazar et al. 2009)
     Task Description
-        In particular we are concerned with comparing long periods of time, as shown in Figure. 4, plot B. Develop your
+        In particular we are concerned with comparing long periods of time, as shown in Figure. 5, plot B. Develop your
         methods in one file, and call them from a second file to work on some test data. Do this in the
         sandbox/analysisFunctionDevelopment/ folder.
