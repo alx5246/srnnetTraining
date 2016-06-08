@@ -1,0 +1,16 @@
+A. Lonsberry
+June 2016
+
+(c)onditional (i)intenstiy (f)unction (i)ntroduction README (cifiREAME)
+
+DESCRIPTION
+
+    One of the main things we have to do for the reinforcement learning algorithm, is train conditional intensity
+    functions. These are used to judge novelty, and guide synaptice weight updates! Here we will first demonstarte this
+    this in a simple example.
+
+FILES AND FOLDERS
+
+    We will have a set of files that each do important tasks
+
+    condIntenFunc_0_0 : this will have functions in it to generate spike times inputs
