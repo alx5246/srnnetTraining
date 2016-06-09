@@ -23,14 +23,17 @@ def poissonSpikeGen(rateArray, timeArray):
     :param timeArray: pthon 1-D list with time intervals of constant rates
     :return: 1-D list of spike times
     '''
+
+    #Make initial element, which will at the end be removed! This is needed however to create the rest of the list.
     spikeTimes = [timeArray[0]]
 
-    # Make our sample
-    countIndex = 0
-    tarVal = -1. * math.log(1. - random.random())
+    # Make our first sample
+    countIndex    = 0
+    tarVal        = -1. * math.log(1. - random.random())
     intermedTime  = 0.
     intermedScore = 0.
 
+    # Iterative until having gone past time limit
     while countIndex < len(rateArray):
 
         #Find delta-time
@@ -57,9 +60,17 @@ def poissonSpikeGen(rateArray, timeArray):
     return spikeTimes
 
 
-#TEST THE FUNCTION
-#spikeArray = poissonSpikeGen([1.,2.,1.], [1., 3., 4., 6. ] )
-#print(spikeArray)
+########################################################################################################################
+# Internal Unit Testing
+########################################################################################################################
+
+# I want to do some very simple unit testing on the functions above.
+
+if __name__ == "__main__":
+
+    #TEST THE FUNCTION
+    spikeArray = poissonSpikeGen([1.,2.,1.], [1., 3., 4., 6. ] )
+    print(spikeArray)
 
 
 
