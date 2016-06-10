@@ -4,8 +4,10 @@
 # DESCRIPTION
 #   This python file will have methods to run a brian2 neural simulation and outputs
 
+from brian2 import *
+import os
 
-def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections, mainToMainConnections, inputSpikes):
+def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections, inputToMainConnWeights, mainToMainConnections, mainToMainConnWeights, inputSpikes):
     '''
     DESCRIPTION
     This runs a new simulation with a Izh. RS neurons (slgihtly modified) along with a version of STDP + Homeostatsis
@@ -66,35 +68,45 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     u = u + d
     """
 
+    ####################################################################################################################
+    # Setting up Main Network Bodya of neuonrs
+    ####################################################################################################################
+
     # Neuron Group, where we have one neuron now for each different iteration of the values we care about. The number
     # of neurons in this group is define by the "mainNetStruc" array.
+
     G = NeuronGroup(mainNetStruc.shape[0], model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
 
     ####################################################################################################################
-    # Setting up Input Neuron Model
+    # Setting up Input Neuron Groupd
     ####################################################################################################################
 
     # We are giving the input neuron spike times as input into this method/fuction.
-    inds = inputSpikes[:, 0]
-    times = inputSpikes[:, 1]
-    P = SpikeGeneratorGroup(numpy.unique)
 
-    #P = PoissonGroup(100, numpy.arange(100) * .2 * Hz + .2 * Hz)
+    inds  = inputSpikes[:, 0]
+    times = inputSpikes[:, 1]
+    times = times *second
+    P = SpikeGeneratorGroup(1, inds, times)
 
     ####################################################################################################################
     # STDP + Homeostatis Synapses
     ####################################################################################################################
-    # Synapse dynamics and group
-    taupre = .020 * second
+
+    # The STDP + Homeostatis model here is largely a replication from Carlson et al. (2013).
+
+    # Synapse dynamics are controlled by a set of parameters
+    taupre  = .020 * second
     taupost = .060 * second
-    Apre = .0002
-    Apost = -.000066
-    R_tar = 6.6425  # This value is calculated for the low-pass filter and using 10Hz
-    tauR = 1 * second
-    beta = 1
-    # alpha   = 1 #Imported variable
-    gamma = 50
-    T = 5
+    Apre    = .0002
+    Apost   = -.000066
+    R_tar   = 6.6425  # This value is calculated for the low-pass filter and using 10Hz
+    tauR    = 1. * second
+    beta    = 1.
+    alpha   = 0.3
+    gamma = 50.
+    T = 5.
+
+    # Make the synapes between input to main neuron group
     S = Synapses(P, G, model="""
                              dw/dt = (alpha * w * (1 - R_hat / R_tar) * K) / (1*second)  : 1 (clock-driven)
                              dapre/dt = -apre / taupre : 1 (event-driven)
@@ -114,39 +126,69 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
                              """,
                  method='euler')
 
+    # Make the synapses between main body to main body
+    S2 = Synapses(G, G, model="""
+                dw/dt = (alpha * w * (1 - R_hat / R_tar) * K) / (1*second)  : 1 (clock-driven)
+                dapre/dt = -apre / taupre : 1 (event-driven)
+                dapost/dt = -apost / taupost : 1 (event-driven)
+                dR_hat/dt = -R_hat/tauR : 1 (clock-driven)
+                K = R_hat / ( T * abs( 1 - R_hat / R_tar) * gamma) : 1
+                """,
+                 on_pre="""
+                L += w
+                apre += Apre
+                w += beta * K * apost
+                """,
+                 on_post="""
+                apost += Apost
+                w += beta * K * apre
+                R_hat += 1
+                """,
+                 method='euler')
+
+
+    ####################################################################################################################
+    # Connect synapses
+    ####################################################################################################################
+
     # Connect all neurons in group 'P' to group 'G'
-    S.connect()
+    S.connect(i = inputToMainConnections[:, 0], j = inputToMainConnections[:, 1])
+    if inputToMainConnWeights.size != 0:
+        S.w = inputToMainConnWeights
+    else:
+        S.w = 2.
 
-    # print(S.alpha[0,0])
-    # print(S.alpha[0,1])
-    # print(S.alpha[0,2])
-    # print(S.alpha[1,0])
-    # print(S.alpha[2,0])
-    # print(S.alpha[3,0])
-    # print(S.alpha)
 
-    # Set the weights
-    # vectWeights = numpy.linspace(start=1.0,stop=3.0,num=100)
-    # S.w = vectWeights #USE STRINGS IN COMPILED VERSION
-    S.w = 2.0
+
+    # Connect all neurons in group 'G' to group 'G'
+    S2.connect(i = mainToMainConnections[:, 0], j = mainToMainConnections[:, 1])
+    if mainToMainConnWeights.size != 0:
+        S2.w = mainToMainConnWeights
+    else:
+        S2.w = 2.0 #Initialize weights fo the synapses.
 
     ####################################################################################################################
     # Monitors
     ####################################################################################################################
 
-    # M0 = SpikeMonitor(P)
-    M1 = StateMonitor(S, ['R_hat'], record=[0], dt=1*ms)
+    M0 = SpikeMonitor(P)
+    M1 = SpikeMonitor(G)
 
     ####################################################################################################################
     # RUN
     ####################################################################################################################
-    # Comment out the code appropriately. The top-section of code applies to running this method from a for-loop. The
-    # bottom section applies to running parallel function calls.
-
 
     # Setting compilation for simpley compiling inside a for-loop (this gets called inside a for-loop outside), and not
     # with anything multiprocessing.
     run(10 * second, report='text')
     device.build(directory=buildDirectory, compile=True, run=True, debug=False)
-    return M1  # This works fine without multiprocess
+
+    ####################################################################################################################
+    # RETURN
+    ####################################################################################################################
+
+    # Other than spike monitors, I would like to return the synaptic weights as well!
+    outputList = [M0, M1, S.w, S2.w]
+
+    return outputList
 

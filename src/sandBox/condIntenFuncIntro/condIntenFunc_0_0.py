@@ -19,9 +19,9 @@ def poissonSpikeGen(rateArray, timeArray):
     (2) the rates over those time-intervals 1.0 Hz, 3.0Hz, and 4.0Hz, the input to this functoin is given as
     rateArray = [1., 3., 4.] and timeArray = [1.0, 2.5, 3.5, 7.0].
 
-    :param rateArray: python 1-D list of rate values over time intervals
-    :param timeArray: pthon 1-D list with time intervals of constant rates
-    :return: 1-D list of spike times
+    :param rateArray: python 1-D list, of rate values over time intervals
+    :param timeArray: pthon 1-D list, with time intervals of constant rates
+    :return: python 1-D list, of spike times
     '''
 
     #Make initial element, which will at the end be removed! This is needed however to create the rest of the list.
@@ -36,11 +36,11 @@ def poissonSpikeGen(rateArray, timeArray):
     # Iterative until having gone past time limit
     while countIndex < len(rateArray):
 
-        #Find delta-time
+        # Find delta-time
         delTime = (tarVal - intermedScore) / rateArray[countIndex]
 
         if (spikeTimes[-1] + delTime + intermedTime) > timeArray[countIndex+1]:
-            #We do not crate a spike, we need to go into the next rate interval and accumulate more time.
+            # We do not crate a spike, we need to go into the next rate interval and accumulate more time.
 
             dummyTime     =  min( timeArray[countIndex+1]-spikeTimes[-1] , timeArray[countIndex+1]-timeArray[countIndex] )
             intermedTime  = intermedTime + dummyTime
@@ -48,13 +48,13 @@ def poissonSpikeGen(rateArray, timeArray):
             countIndex += 1
 
         else:
-            #We need to create a new spike and draw a new values
+            # We need to create a new spike and draw a new values
             spikeTimes.append(spikeTimes[-1] + delTime + intermedTime)
             tarVal = -1. * math.log(1. - random.random())
             intermedTime  = 0.
             intermedScore = 0.
 
-    #Drop the first value
+    # Drop the first value
     del spikeTimes[0]
 
     return spikeTimes

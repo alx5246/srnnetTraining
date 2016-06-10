@@ -11,13 +11,13 @@ import random
 def createNetLayer(xN, yN=0, zN=0):
     '''
     DESCRIPTION
-    Creates an array of neuron positions inside a square lattice structure. This tells us the network position of a
+    Creates an array of neuron positions inside a cube lattice structure. This tells us the network position of a
     particular neuron.
 
     :param xN:
     :param yN:
     :param zN:
-    :return: numpy.ndarray, size is number of neurons X 4, in each row we have [the neuron index, x-position, y-position, z-position]
+    :return: 2D numpy.ndarray, size = numb. neurons X 4, in each row we have [the neuron index, x-position, y-position, z-position]
     '''
     totalNumbNeurons = max(xN*yN*zN, xN*yN, yN*zN, zN*xN, xN, yN, zN)
 
@@ -72,7 +72,7 @@ def createConnectionArray(layerProb):
     actually are!
 
     :param layerProb:
-    :return:
+    :return: numpy.ndarray, nX2, in each row [presynaptic
     '''
 
     # Inital array where we store the connections bits.
@@ -85,7 +85,7 @@ def createConnectionArray(layerProb):
                 connectionArray[i, j] = 1
 
     #Now we want to trim down into an array with only pre- and post-synaptic connections
-    trimmedArray = numpy.zeros((numpy.sum(connectionArray), 2))
+    trimmedArray = numpy.zeros((numpy.sum(connectionArray), 2), dtype=int)
     counter = 0
     for i in range(connectionArray.shape[0]):
         for j in range(connectionArray.shape[1]):
