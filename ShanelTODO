@@ -5,3 +5,6 @@ Shanel's TODO list
         In particular we are concerned with comparing long periods of time, as shown in Figure. 5, plot B. Develop your
         methods in one file, and call them from a second file to work on some test data. Do this in the
         sandbox/analysisFunctionDevelopment/ folder.
+
+    Task Update (SCP):
+        Function was completed (SpikeCount) and is in the sandBox with an accompanying tester script (SpikeCountTest)
