@@ -9,7 +9,7 @@
 
 import numpy as np
 
-def spike_count(time, start, stop, dt):
+def spike_count2(time, start, stop, dt):
     """
     FUNCTION DESCRIPTION
         This function takes as input a 1-D numpy.array of spike times, and outputs a spike count vector; the spike
@@ -39,27 +39,50 @@ def spike_count(time, start, stop, dt):
     splitInterval = np.linspace(0, duration, n+1)   #create numpy array of subinterval over which to count spikes
     print (splitInterval)
 
+    ##Find length over which to iterate in for loop
+    length_splitInt = len(splitInterval)
+    print('length splitInterval: ', length_splitInt)
+    length_time = len(time)
+    print('length time: ', length_time)
+    length = length_splitInt + ((length_time) - 2)
+    print('length :', length)
+
     i=0     #inex for time array
     j=0     #index for splitInterval array.
     k=0     #index for new matrix that will store the grouped values from the split time array
     counter = 0     #counter variable to keep track of spike count for each subinterval through loop
     SpikeCount = []     #Initialize array to collect the number of spikes occuring wihtin each subinterval
 
-    for i in range(len(time)):
-        if (time[i] >= splitInterval[j]) & (time[i] <= splitInterval[j + 1]):
+    for i in range(length):
+        if (time[k] > splitInterval[j]) and (time[k] <= splitInterval[j + 1]):
+            print('time element: ', time[k])
+            print('splitInt: ', splitInterval[j], splitInterval[j + 1])
             counter += 1
-            # print ('if counter: ', counter)
-            # print ('time element: ', time[i])
-            # print ('j = ', j)
+            print('if counter: ', counter)
             i += 1
-            # print ('i: ', i)
+            print('i: ', i)
+            print('if k: ', k)
+            if k < (len(time) - 1):
+                k += 1
+                print('iff k: ', k)
+                print('iff counter: ', counter)
+            else:
+                print('iff counter: ', counter)
+                # SpikeCount.append(counter)
+                print(SpikeCount)
+                j += 1
+                print('iff j: ', j)
         else:
             SpikeCount.append(counter)
+            print(SpikeCount)
+            print('time element: ', time[k])
+            print('splitInt: ', splitInterval[j], splitInterval[j + 1])
             counter = 0
-            # k += 1
-            # i += 1
+            print('else counter: ', counter)
             j += 1
-    SpikeCount.append(counter)
-    print ('Spike count: ', SpikeCount)
+            print('else j: ', j)
+            i += 1
+            print('else i: ', i)
+            print('else k: ', k)
 
     return SpikeCount
