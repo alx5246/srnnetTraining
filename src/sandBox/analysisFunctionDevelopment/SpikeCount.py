@@ -12,7 +12,7 @@ import numpy as np
 def spike_count(spikeTime, start, stop, dt):
     """
     FUNCTION DESCRIPTION
-        This function takes as input a 1-D numpy.array of spike times, and outputs a spike count vector; the spike
+        This  function takes as input a 1-D numpy.array of spike times, and outputs a spike count vector; the spike
         counts are averaged over a user defined interval
 
         This is an example function, and thus has some limitations. For example it can only handle 1D input. A more
