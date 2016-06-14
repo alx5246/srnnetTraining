@@ -13,18 +13,18 @@
 
 
 import numpy as np
-from SpikeCountCode import spike_countCode
+from SpikeCount import spike_count
 import pickle
 
 ########################################################################################################################
 # TESTING Spike Counting
 ########################################################################################################################
 #This segment works
-# In the first test we will simply create some fake neuron output a specific frequency.
-staticFiringPattern = np.linspace(start=0, stop=5, num=10)
-print (staticFiringPattern)
-spikeCount = spike_countCode(spikeTime=staticFiringPattern, start=0 , stop=5, dt=.3)
-print (spikeCount)
+# # In the first test we will simply create some fake neuron output a specific frequency.
+# staticFiringPattern = np.linspace(start=0, stop=5, num=10)
+# print (staticFiringPattern)
+# spikeCount = spike_count(spikeTime=staticFiringPattern, start=0 , stop=5, dt=.3)
+# print (spikeCount)
 
 # In the second test we will load some data that we have created in simulation and see what it looks like
 # Input spike times
