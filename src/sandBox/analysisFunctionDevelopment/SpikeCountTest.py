@@ -15,7 +15,7 @@
 import numpy as np
 from SpikeCount import spike_count
 import pickle
-
+import matplotlib.pyplot as plt
 ########################################################################################################################
 # TESTING Spike Counting
 ########################################################################################################################
@@ -43,8 +43,12 @@ print (len(spikeTimes))
 # neuronSpikeTimes = spikeTimes[spikeTimeInds==99]
 #
 # # Now find spike count
-spikeCount = spike_count(spikeTime=spikeTimes, start=0.0, stop=10.0, dt = .2)
+[spikeCount, time] = spike_count(spikeTime=spikeTimes, start=0.0, stop=10.0, dt = .2)
 print (spikeCount)
-# plt.figure(2)
-# plt.plot(smoothedRate[1],smoothedRate[0])
-# plt.show
+print (time)
+# plt.figure(1)
+plt.plot(time, spikeCount)
+plt.title("Spike Count Across Time Intervals")
+plt.xlabel("Time")
+plt.ylabel("Count")
+
