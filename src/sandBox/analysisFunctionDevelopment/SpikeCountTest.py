@@ -20,7 +20,7 @@ import pickle
 # TESTING Spike Counting
 ########################################################################################################################
 #This segment works
-# # In the first test we will simply create some fake neuron output a specific frequency.
+# In the first test we will simply create some fake neuron output a specific frequency.
 # staticFiringPattern = np.linspace(start=0, stop=5, num=10)
 # print (staticFiringPattern)
 # spikeCount = spike_count(spikeTime=staticFiringPattern, start=0 , stop=5, dt=.3)
@@ -28,24 +28,23 @@ import pickle
 
 # In the second test we will load some data that we have created in simulation and see what it looks like
 # Input spike times
-# inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
-# spikeTimes = pickle.load(inputFile)
+inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
+spikeTimes = pickle.load(inputFile)
 # spikeTimesUnits = pickle.load(inputFile)
-# inputFile.close()
-# print (spikeTimes)
+inputFile.close()
+print (spikeTimes)
+print (len(spikeTimes))
 
 # # Input spike times indices,
 # inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
-# spikeTimeInds = pickle.load(inputFile)
+# # spikeTimeInds = pickle.load(inputFile)
 # inputFile.close()
 # # Find the spike times for a particular neuron
 # neuronSpikeTimes = spikeTimes[spikeTimeInds==99]
 #
-# # Now find the firing rate
-# smoothedRate = spike_count(time=neuronSpikeTimes, duration=10.0, dt=1.)
+# # Now find spike count
+spikeCount = spike_count(spikeTime=spikeTimes, start=0.0, stop=10.0, dt = .2)
+print (spikeCount)
 # plt.figure(2)
 # plt.plot(smoothedRate[1],smoothedRate[0])
-# plt.show()
-#
-# # #Spike count over user defined subinterval. We would like to know the number of spikes that occur over the whole run
-# # #duration as well as the spike counts over subintervals. Calling SpikeCount returns spike count over subintervals
+# plt.show
