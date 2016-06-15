@@ -6,6 +6,7 @@
 
 from brian2 import *
 import os
+import numpy
 
 def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections, inputToMainConnWeights, mainToMainConnections, mainToMainConnWeights, inputSpikes):
     '''
@@ -58,10 +59,10 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
 
     # Neuron dynamics
     nurEqs = """
-    dv/dt = (0.04 * (v**2) + 5*v + 140 - u + I + 5*L)/tau1 : 1 (unless refractory)
+    dv/dt = (0.04 * (v**2) + 5.0*v + 140.0 - u + I + 5.*L)/tau1 : 1 (unless refractory)
     du/dt = (a * ( b * v - u ) ) / tau1 : 1
     dL/dt = -L/tau2 : 1
-    I : 1
+    I = 50.*(randn()+1) : 1
     """
     resetEqs = """
     v = c
@@ -75,7 +76,7 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     # Neuron Group, where we have one neuron now for each different iteration of the values we care about. The number
     # of neurons in this group is define by the "mainNetStruc" array.
 
-    G = NeuronGroup(mainNetStruc.shape[0], model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
+    G = NeuronGroup(mainNetStruc.shape[0], model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2*ms, method='euler')
 
     ####################################################################################################################
     # Setting up Input Neuron Groupd
@@ -85,8 +86,10 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
 
     inds  = inputSpikes[:, 0]
     times = inputSpikes[:, 1]
-    times = times *second
-    P = SpikeGeneratorGroup(1, inds, times)
+    times = times * second
+    #print(inds.astype(int))
+    #print(numpy.max(inds.astype(int)))
+    P = SpikeGeneratorGroup(numpy.max(inds.astype(int))+1, inds.astype(int), times)
 
     ####################################################################################################################
     # STDP + Homeostatis Synapses
@@ -99,17 +102,17 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     taupost = .060 * second
     Apre    = .0002
     Apost   = -.000066
-    R_tar   = 6.6425  # This value is calculated for the low-pass filter and using 10Hz
+    R_tar   = 6.6425  # This value is calculated for the low-pass filter and using 10Hz ... how did I calc. this? -AJL
     tauR    = 1. * second
-    beta    = 1.
-    alpha   = 0.3
+    beta    = 0.05
+    alpha   = 0.20
     gamma = 50.
     T = 5.
 
     # Make the synapes between input to main neuron group
     S = Synapses(P, G, model="""
                              dw/dt = (alpha * w * (1 - R_hat / R_tar) * K) / (1*second)  : 1 (clock-driven)
-                             dapre/dt = -apre / taupre : 1 (event-driven)
+                             dapre/dt  = -apre / taupre : 1 (event-driven)
                              dapost/dt = -apost / taupost : 1 (event-driven)
                              dR_hat/dt = -R_hat/tauR : 1 (clock-driven)
                              K = R_hat / ( T * abs( 1 - R_hat / R_tar) * gamma) : 1
@@ -153,10 +156,11 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
 
     # Connect all neurons in group 'P' to group 'G'
     S.connect(i = inputToMainConnections[:, 0], j = inputToMainConnections[:, 1])
+    print(inputToMainConnections)
     if inputToMainConnWeights.size != 0:
         S.w = inputToMainConnWeights
     else:
-        S.w = 2.
+        S.w = 10.0 #Initialize weights of the synapses
 
 
 
@@ -165,14 +169,24 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     if mainToMainConnWeights.size != 0:
         S2.w = mainToMainConnWeights
     else:
-        S2.w = 2.0 #Initialize weights fo the synapses.
+        S2.w = .95 #Initialize weights fo the synapses.
 
     ####################################################################################################################
     # Monitors
     ####################################################################################################################
 
+    # I record all the spikes, also I want to record riring rates as well!
+
     M0 = SpikeMonitor(P)
     M1 = SpikeMonitor(G)
+
+    M2 = PopulationRateMonitor(G)
+
+    M3 = StateMonitor(G, ['I', 'v'], record=[0], dt=1*ms)
+
+    M4 = StateMonitor(S, ['w'], record=[0], dt=100*ms)
+
+    M5 = StateMonitor(S2, ['w'], record=[0], dt=100*ms)
 
     ####################################################################################################################
     # RUN
@@ -180,7 +194,9 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
 
     # Setting compilation for simpley compiling inside a for-loop (this gets called inside a for-loop outside), and not
     # with anything multiprocessing.
-    run(10 * second, report='text')
+
+    runTime = numpy.max(times)
+    run(runTime + 1.*second, report='text')
     device.build(directory=buildDirectory, compile=True, run=True, debug=False)
 
     ####################################################################################################################
@@ -188,7 +204,7 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     ####################################################################################################################
 
     # Other than spike monitors, I would like to return the synaptic weights as well!
-    outputList = [M0, M1, S.w, S2.w]
+    outputList = [M0, M1, M2, S, S2, M3, M4, M5]
 
     return outputList
 

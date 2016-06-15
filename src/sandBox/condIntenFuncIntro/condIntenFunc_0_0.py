@@ -6,6 +6,7 @@
 
 import math
 import random
+import numpy
 
 def poissonSpikeGen(rateArray, timeArray):
     '''
@@ -30,6 +31,9 @@ def poissonSpikeGen(rateArray, timeArray):
     # Make our first sample
     countIndex    = 0
     tarVal        = -1. * math.log(1. - random.random())
+    if tarVal <= .1:
+        tarVal = .11
+
     intermedTime  = 0.
     intermedScore = 0.
 
@@ -51,6 +55,8 @@ def poissonSpikeGen(rateArray, timeArray):
             # We need to create a new spike and draw a new values
             spikeTimes.append(spikeTimes[-1] + delTime + intermedTime)
             tarVal = -1. * math.log(1. - random.random())
+            if tarVal <= .1:
+                tarVal = .11
             intermedTime  = 0.
             intermedScore = 0.
 
@@ -58,6 +64,71 @@ def poissonSpikeGen(rateArray, timeArray):
     del spikeTimes[0]
 
     return spikeTimes
+
+def multiPoissonStreams(numPoiStreams, startTime, stopTime, rateBounds, intervalBounds):
+    '''
+    DESCRIPTION
+    Make a number of input streams, where for example, each input stream could correspond to spikes from some input
+    neurons.
+
+
+    :param numPoiStreams: integer > 0, number of Poisson spike time streams
+    :param startTime: double > 0., the smallest spike time allowed
+    :param stopTime: double > startTime, the largest spike time allowed
+    :param rateBounds: 1X2 list, [minrate, maxrate] assumed to be in Hz
+    :param intervalBounds: 1X2 list. [minInterval, maxInterval] assumed to be in Seconds
+    :return:
+    '''
+
+    streamIndex = numpy.array([])
+    spikeTimes = numpy.array([])
+
+    for i in range(numPoiStreams):
+
+        #Create lists of time intervals, and list of firing rates.
+
+        timeIntervals = [startTime]
+        rateIntervals = []
+
+        timeSample = random.random() * (intervalBounds[1]-intervalBounds[0]) + intervalBounds[0]
+        rateSample = random.random() * (rateBounds[1]-rateBounds[0]) + rateBounds[0]
+
+        while timeIntervals[-1] + timeSample < stopTime:
+
+            newTime = timeIntervals[-1] + timeSample
+            timeIntervals.append(newTime)
+            rateIntervals.append(rateSample)
+            timeSample = random.random() * (intervalBounds[1] - intervalBounds[0]) + intervalBounds[0]
+            rateSample = random.random() * (rateBounds[1] - rateBounds[0]) + rateBounds[0]
+
+        #Now make last sample
+        timeIntervals.append(stopTime)
+        rateSample = random.random() * (rateBounds[1] - rateBounds[0]) + rateBounds[0]
+        rateIntervals.append(rateSample)
+
+        #Now give to the spike maker function
+        newSpikeTimes = poissonSpikeGen(rateIntervals, timeIntervals)
+
+        #Now add to our ever increasing lists of spikes and spike generators
+        streamIndex = numpy.concatenate((streamIndex, numpy.ones(numpy.asarray(newSpikeTimes).size, dtype=int)*i))
+        spikeTimes  = numpy.concatenate((spikeTimes, numpy.asarray(newSpikeTimes)))
+
+    #Now with our two numpy arrays filled we want to stick them together and then sort them
+    outputArray = numpy.transpose(numpy.vstack((streamIndex, spikeTimes)))
+    outputArray = outputArray[outputArray[:, 1].argsort()]
+
+    return outputArray
+
+
+
+
+
+
+
+
+
+
+
 
 
 ########################################################################################################################
@@ -68,9 +139,17 @@ def poissonSpikeGen(rateArray, timeArray):
 
 if __name__ == "__main__":
 
-    #TEST THE FUNCTION
+    #TEST THE FUNCTIONS
+
+    #Test (1)
     spikeArray = poissonSpikeGen([1.,2.,1.], [1., 3., 4., 6. ] )
     print(spikeArray)
+    print('\n')
+
+    #Test (2)
+    spikesArray = multiPoissonStreams(3, startTime=0.0, stopTime=10.0, rateBounds=[1., 5.], intervalBounds=[1., 3.])
+    print(spikesArray)
+
 
 
 
