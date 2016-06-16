@@ -16,6 +16,9 @@ import numpy as np
 from SpikeCount import spike_count
 import pickle
 import matplotlib.pyplot as plt
+# import plotly.plotly as py
+# import plotly.graph_objs as go
+
 ########################################################################################################################
 # TESTING Spike Counting
 ########################################################################################################################
@@ -32,8 +35,11 @@ inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
 spikeTimes = pickle.load(inputFile)
 # spikeTimesUnits = pickle.load(inputFile)
 inputFile.close()
-print (spikeTimes)
-print (len(spikeTimes))
+# print (spikeTimes)
+
+start = 0.0
+stop = 10.0
+dt = .2
 
 # # Input spike times indices,
 # inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
@@ -43,12 +49,21 @@ print (len(spikeTimes))
 # neuronSpikeTimes = spikeTimes[spikeTimeInds==99]
 #
 # # Now find spike count
-[spikeCount, time] = spike_count(spikeTime=spikeTimes, start=0.0, stop=10.0, dt = .2)
-print (spikeCount)
-print (time)
-# plt.figure(1)
-plt.plot(time, spikeCount)
-plt.title("Spike Count Across Time Intervals")
-plt.xlabel("Time")
-plt.ylabel("Count")
+[spikeCount, time] = spike_count(spikeTime=spikeTimes, start=start, stop=stop, dt = dt)
+spikeCount = np.array(spikeCount)
+# print (spikeCount)
+# print (time)
 
+nSpike = len(spikeCount)
+nTime = time_len = (len(time))
+
+
+# plt.figure(1)
+plt.hist(spikeCount, bins=50, normed = True)
+# plt.bar(left, height = spikeCount, width = 1, facecolor = 'blue')
+plt.title("Spike Count Across Time Intervals")
+plt.xlabel("Time Intervals")
+plt.ylabel("Spike Count")
+# plt.axis([0,50])
+plt.grid(True)
+plt.show()
