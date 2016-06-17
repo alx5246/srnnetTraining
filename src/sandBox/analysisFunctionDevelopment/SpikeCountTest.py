@@ -16,6 +16,8 @@ import numpy as np
 from SpikeCount import spike_count
 import pickle
 import matplotlib.pyplot as plt
+
+
 # import plotly.plotly as py
 # import plotly.graph_objs as go
 
@@ -56,10 +58,15 @@ spikeCount = np.array(spikeCount)
 
 nSpike = len(spikeCount)
 nTime = time_len = (len(time))
+print (nTime)
 
+bin_size = 0.2; min_edge = 0; max_edge = 10
+N = (max_edge-min_edge)/bin_size; Nplus1 = N + 1
+bin_list = np.linspace(min_edge, max_edge, Nplus1)
+print (bin_list)
 
 # plt.figure(1)
-plt.hist(spikeCount, bins=50, normed = True)
+plt.hist(list(spikeCount), color="#3F5D7D", bins=bin_list)
 # plt.bar(left, height = spikeCount, width = 1, facecolor = 'blue')
 plt.title("Spike Count Across Time Intervals")
 plt.xlabel("Time Intervals")
