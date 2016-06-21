@@ -28,3 +28,7 @@ FILES AND FOLDERS
     (3) SpikeCount.py
     Short Description: spike count over time subintervals
     Long Description
+
+    (4)CountPCA
+    Short Description: principal compenent analysis script
+    Long Description
