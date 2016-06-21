@@ -8,3 +8,8 @@ Shanel's TODO list
 
     Task Update (SCP):
         Function was completed (SpikeCount) and is in the sandBox with an accompanying tester script (SpikeCountTest)
+
+(2) Create PCA algorithm to quantify variance in the network (Lazar et al. 2009)
+    Task Description
+        Algorithm should output the variance proportion on each principal component and a figure like Lazar fig.3H should
+        be able to be constructed in main body of code

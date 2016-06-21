@@ -60,13 +60,10 @@ nSpike = len(spikeCount)
 nTime = time_len = (len(time))
 print (nTime)
 
-bin_size = 0.2; min_edge = 0; max_edge = 10
-N = (max_edge-min_edge)/bin_size; Nplus1 = N + 1
-bin_list = np.linspace(min_edge, max_edge, Nplus1)
-print (bin_list)
-
-# plt.figure(1)
-plt.hist(list(spikeCount), color="#3F5D7D", bins=bin_list)
+nump_hist = plt.figure()
+plt.hist(spikeCount, bins = time)
+plt.figure(1)
+plt.hist(spikeCount, bins=50)
 # plt.bar(left, height = spikeCount, width = 1, facecolor = 'blue')
 plt.title("Spike Count Across Time Intervals")
 plt.xlabel("Time Intervals")
@@ -74,3 +71,4 @@ plt.ylabel("Spike Count")
 # plt.axis([0,50])
 plt.grid(True)
 plt.show()
+
