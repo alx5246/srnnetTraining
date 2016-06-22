@@ -30,5 +30,11 @@ FILES AND FOLDERS
     Long Description
 
     (4)CountPCA
-    Short Description: principal compenent analysis script
+    Short Description: principal compenent analysis script of spike times
     Long Description
+
+    (5)spikeMonToMatrix
+    Short Description: Find element positions for each neuron with the neuron index array (spikemon.i) generated from
+    the spikmon class in the simulation. Once the elements for each neuron are found, these elements are then used to
+    find the corresponding spike time for said neuron. The ouput is a series of arrays where each row is a neuron index
+    and the columns are spike times

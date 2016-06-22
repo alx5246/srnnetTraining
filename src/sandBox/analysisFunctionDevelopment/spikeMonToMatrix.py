@@ -29,14 +29,14 @@ def spikeMon_To_Matrix(spikeTimeArray, NeurIndexArray):
 
     #Make input arrays into numpy arrays
     spikeTimeArray = np.array(spikeTimeArray)
-    print(spikeTimeArray)
+    # print(spikeTimeArray)
     NeurIndexArray = np.array(NeurIndexArray)
-    print(NeurIndexArray)
+    # print(NeurIndexArray)
 
 
     #Set parameters for loop
     iter = np.amax(NeurIndexArray)
-    print (iter)
+    # print (iter)
 
     i = 0           #Counter for loop iteration tracking
     ind = 0         #tracker for neuron index positions
@@ -44,12 +44,16 @@ def spikeMon_To_Matrix(spikeTimeArray, NeurIndexArray):
 
     #For loop to make N number of arrays that hold the element positions corresponding to neuron firing time
     for i in range(iter+1):
-        ind = np.where(NeurIndexArray == i)
-        NeurInd.append(ind)
+        ind = np.where(NeurIndexArray == i)     #holder array; i value will correspond to neuron index; find all elements for each value of i
+        NeurInd.append(ind)     #array holding element positions for each neuron; in sequential order
         ind = 0
-        print ('i: ', i)
 
-    print (NeurInd)
+
+    # print ('NeurInd: ', NeurInd)
+    # print ('NeurInd length: ', len(NeurInd))
+    # print('NeurInd[0]: ', NeurInd[0])
+
+
 
     #Parameters for second loop
     j = 0               #Counter for loop iteration tracking
@@ -58,9 +62,11 @@ def spikeMon_To_Matrix(spikeTimeArray, NeurIndexArray):
 
     #For loop used to extract firing times corresponding to neuron index
     for j in range(iter+1):
-        NFT = spikeTimeArray[NeurInd[j]]
+        NFT = spikeTimeArray[NeurInd[j]]    #value holder; holds spike times corresponding to elements to corresponding neurons
         NeurFireTime.append(NFT)
 
-    print (NeurFireTime)
+    # print ('NeurFireTime: ', NeurFireTime)
+    # print('NeurFireTime length: ', len(NeurFireTime))
+    # print ('NeurFireTime[0]: ', NeurFireTime[0])
 
-    # return (NeurFireTime)
+    return (NeurFireTime)

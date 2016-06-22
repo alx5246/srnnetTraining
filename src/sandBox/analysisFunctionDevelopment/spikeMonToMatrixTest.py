@@ -24,30 +24,24 @@ import matplotlib.pyplot as plt
 
 # # In the second test we will load some data that we have created in simulation and see what it looks like
 # # Input spike times
-inputFile = open("savedData_0/netOutput0_Neu_SpikesTimes.pkl","rb")
+inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
 spikeTimes = pickle.load(inputFile)
 spikeTimesUnits = pickle.load(inputFile)
 inputFile.close()
 # print (spikeTimes)
 
-# start = 0.0
-# stop = 10.0
-# dt = .2
-#
 # Input spike times indices,
 inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
 spikeTimeInds = pickle.load(inputFile)
 inputFile.close()
-print (spikeTimeInds)
-print (len(spikeTimeInds))
-iter = np.amax(spikeTimeInds)
-print(iter)
+# print (spikeTimeInds)
 
 
 
-# NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
-# NeuSpikeTime = np.array(NeurFireTime)
-# print (NeuSpikeTime)
+
+NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
+NeurFire = np.array(NeurFire)
+
 
 # nSpike = len(spikeCount)
 # nTime = time_len = (len(time))
