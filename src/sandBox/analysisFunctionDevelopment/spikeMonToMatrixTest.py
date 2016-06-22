@@ -13,48 +13,41 @@
 
 
 import numpy as np
-from SpikeCount import spike_count
+from spikeMonToMatrix import spikeMon_To_Matrix
 import pickle
 import matplotlib.pyplot as plt
 
-
-# import plotly.plotly as py
-# import plotly.graph_objs as go
-
 ########################################################################################################################
-# TESTING Spike Counting
+# TESTING spike monitoring data to matrix
 ########################################################################################################################
-#This segment works
-# In the first test we will simply create some fake neuron output a specific frequency.
-# staticFiringPattern = np.linspace(start=0, stop=5, num=10)
-# print (staticFiringPattern)
-# spikeCount = spike_count(spikeTime=staticFiringPattern, start=0 , stop=5, dt=.3)
-# print (spikeCount)
 
-# In the second test we will load some data that we have created in simulation and see what it looks like
-# Input spike times
-inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
+
+# # In the second test we will load some data that we have created in simulation and see what it looks like
+# # Input spike times
+inputFile = open("savedData_0/netOutput0_Neu_SpikesTimes.pkl","rb")
 spikeTimes = pickle.load(inputFile)
-# spikeTimesUnits = pickle.load(inputFile)
+spikeTimesUnits = pickle.load(inputFile)
 inputFile.close()
-print (spikeTimes)
+# print (spikeTimes)
 
-start = 0.0
-stop = 10.0
-dt = .2
-
-# # Input spike times indices,
-# inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
-# # spikeTimeInds = pickle.load(inputFile)
-# inputFile.close()
-# # Find the spike times for a particular neuron
-# neuronSpikeTimes = spikeTimes[spikeTimeInds==99]
+# start = 0.0
+# stop = 10.0
+# dt = .2
 #
-# # Now find spike count
-[spikeCount, time] = spike_count(spikeTime=spikeTimes, start=start, stop=stop, dt = dt)
-spikeCount = np.array(spikeCount)
-# print (spikeCount)
-# print (time)
+# Input spike times indices,
+inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
+spikeTimeInds = pickle.load(inputFile)
+inputFile.close()
+print (spikeTimeInds)
+print (len(spikeTimeInds))
+iter = np.amax(spikeTimeInds)
+print(iter)
+
+
+
+# NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
+# NeuSpikeTime = np.array(NeurFireTime)
+# print (NeuSpikeTime)
 
 # nSpike = len(spikeCount)
 # nTime = time_len = (len(time))
@@ -71,6 +64,4 @@ spikeCount = np.array(spikeCount)
 # # plt.axis([0,50])
 # plt.grid(True)
 # plt.show()
-
-
 

@@ -20,36 +20,22 @@ import pickle
 # TESTING INSTANTANEOUS FIRING RATE FUNCTION
 ########################################################################################################################
 
-# In the first test we will simply create some fake neuron output a specific frequency.
-# staticFiringPattern = numpy.linspace(start=.1, stop=5.0, num=100)
-# smoothedRate = instant_firing_rate(spikeTrain=staticFiringPattern, startTime=0.0, endTime=5.0, filterLength=2.0, var=1.)
-# plt.figure(1)
-# plt.plot(smoothedRate[1],smoothedRate[0])
 
 
 # In the second test we will load some data that we have created in simulation and see what it looks like
 # Input spike times
-# inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
-# spikeTimes = pickle.load(inputFile)
-# spikeTimesUnits = pickle.load(inputFile)
-# inputFile.close()
-# print (spikeTimes)
-
-inputFile = open("savedData_0/netOutput0_Neu_SpikesTimes.pkl","rb")
+inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
 spikeTimes = pickle.load(inputFile)
 spikeTimesUnits = pickle.load(inputFile)
 inputFile.close()
 print (spikeTimes)
-#
-# # Input spike times indices,
-# inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
-# spikeTimeInds = pickle.load(inputFile)
-# inputFile.close()
 
-inputFile = open("savedData_0/netOutput0_Neu_SpikesInds.pkl","rb")
+
+# Input spike times indices,
+inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
 spikeTimeInds = pickle.load(inputFile)
 inputFile.close()
-print (spikeTimeInds)
+
 
 # # Find the spike times for a particular neuron
 # neuronSpikeTimes = spikeTimes[spikeTimeInds==99]

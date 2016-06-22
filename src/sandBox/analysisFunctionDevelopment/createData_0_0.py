@@ -60,7 +60,9 @@ u = u + d
 """
 
 # Make Neuron Group 1, where we have the single output Izh. type neuron of "RS" type
-G = NeuronGroup(1, model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
+G = NeuronGroup(3, model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
+#SCP changed neuron count from 1 to three for testing purposes (21JUN16)
+
 
 ########################################################################################################################
 # Setting up Poisson Neurons
