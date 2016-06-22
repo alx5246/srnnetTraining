@@ -24,7 +24,7 @@ def count_PCA(spikeTimeArray):
 # (i.e. row one has spike times for neuron one across the whole run)
 #This toy day emulates spike times that might occur for a three neuron network
 # spikeTimeArray = ([.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4], [.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4], [.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4])
-spikeTimeArray = ([.1, 1.3, 1.4, 2.2, 2.4, 3.5, 4.4], [0, 1.3, 1.3, 2.4, 2.9, 3.4, 4.3, 4.8], [.5, 1.8, 1.9, 2.3, 2.6, 3.5, 4.3, 4.6])
+spikeTimeArray = ([.1, 1.3, 1.4, 2.2, 2.4, 3.5, 4.4, 4.4], [0, 1.3, 1.3, 2.4, 2.9, 3.4, 4.3, 4.8], [.5, 1.8, 1.9, 2.3, 2.6, 3.5, 4.3, 4.6])
 
 
 # Spike time turned into a numpy array (to ensure type)
@@ -33,7 +33,7 @@ print(spikeTimeArray)
 
 # #One line of code?
 results = PCA(spikeTimeArray.T)
-print ('Proportion of Variance: ', results.fracs, '\n')
+print ('Proportion of Variance: ', results.fracs)
 
 
 # print ('Eigenvalues: ', results.s, '\n')
