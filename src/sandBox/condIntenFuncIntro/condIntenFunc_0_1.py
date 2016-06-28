@@ -76,7 +76,7 @@ def createConnectionArray(layerProb, groupId1, groupId2):
     :param layerProb: the probability [0.0, 1.0] of drawing an actual synaptic connection between two neurons
     :groupId1: int, the group the presynaptic neuron is within
     :groupId2: int, the group the postsynatic neuron is within
-    :return: numpy.ndarray, nX2, in each row [presynaptic
+    :return: numpy.ndarray, nX4, in each row [presynaptic
     '''
 
     # Inital array where we store the connections bits.
