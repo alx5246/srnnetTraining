@@ -38,3 +38,6 @@ FILES AND FOLDERS
     the spikmon class in the simulation. Once the elements for each neuron are found, these elements are then used to
     find the corresponding spike time for said neuron. The ouput is a series of arrays where each row is a neuron index
     and the columns are spike times
+
+    (6)SpikeCount2D.py
+        Short Description: spike count over time subintervals for a 2D vector input (spike times for each neuron)
