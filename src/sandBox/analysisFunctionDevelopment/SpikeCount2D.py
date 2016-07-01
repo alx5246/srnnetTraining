@@ -31,11 +31,11 @@ def spike_count2D(spikeTime, start, stop, dt):
 
     #Setup counters for loop
 
-    row=0
-    col=0     #inex for for subinterval (length of splitInterval)
-    j=0     #index for splitInterval array.
-    k = 0   #index for new matrix that will store the grouped values from the split time array
-    n = 0   #row tracker
+    row=0       #Row iterator
+    col=0       #iterator for columns
+    j=0         #index for splitInterval array.
+    k = 0       #index for new matrix that will store the grouped values from the split time array
+
     counter = 0
     SpikeCount = [[] for m in range(len(spikeTime))]
 
