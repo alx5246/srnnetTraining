@@ -8,7 +8,7 @@
 import numpy as np
 from spikeMonToMatrix import spikeMon_To_Matrix
 from SpikeCount2D import spike_count2D
-# # from CountPCA import count_PCA
+from CountPCA import count_PCA
 import pickle
 # import matplotlib.pyplot as plt
 
@@ -63,25 +63,30 @@ inputFile.close()
 #With neuron indices and spike times array, generate matrix that holds the spike times of each neuron in each element
 NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
 NeurFire = np.array(NeurFire)
-print (NeurFire)
-print (len(NeurFire))
-# print (NeurFire[0])
+# print (NeurFire)
+# print(len(NeurFire))
 
-# start = 0
-# stop = 5
-# dt = 1
 
 ##################
 #FIRE COUNT MATRIX
 ##################
 # Now find spike count
-# [spikeCount, timeInt] = spike_count2D(spikeTime=NeurFire[0], start=0 , stop=5, dt=1)
-# print (spikeCount)
-# print (timeInt)
+start = 0.0
+stop = 10.0
+dt = 1
 
+[spikeCount, timeInt] = spike_count2D(spikeTime=NeurFire, start=start , stop=stop, dt=dt)
+spikeCount = np.array(spikeCount)
+# print (spikeCount)
+# print (len(spikeCount))
+# spikeCount.shape
+# print (timeInt)
 
 ##################
 #PCA ON FIRE COUNT
 ##################
 
-# PCAcount = count_PCA(spikeCountArray = spikeCount)
+PCAcount = count_PCA(spikeCountArray = spikeCount)
+print ('Proportion of Variance: ', PCAcount.fracs)
+print('Eigenvalues: ', PCAcount.s, '\n')
+print('Weights: ', PCAcount.Wt, '\n')

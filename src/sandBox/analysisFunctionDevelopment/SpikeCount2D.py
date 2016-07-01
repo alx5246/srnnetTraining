@@ -21,13 +21,13 @@ def spike_count2D(spikeTime, start, stop, dt):
 
     # Spike time turned into a numpy array
     spikeTime = np.array(spikeTime)
-    print ('spikeTime: ', spikeTime)
+    # print ('spikeTime: ', spikeTime)
 
     # Creat interval array - intervals in which to break up the time array - sub time interval array
     duration = stop - start                             # Total run time
     n = duration / dt                                   # How many subintervals from time horizon results from user defined interval
     splitInterval = np.linspace(0, duration, n + 1)     # create numpy array of subinterval over which to count spikes
-    print ('splitInterval: ', splitInterval)
+    # print ('splitInterval: ', splitInterval)
 
     #Setup counters for loop
 

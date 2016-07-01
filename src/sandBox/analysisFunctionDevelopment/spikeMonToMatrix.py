@@ -28,9 +28,9 @@ def spikeMon_To_Matrix(spikeTimeArray, NeurIndexArray):
 
     #Make input arrays into numpy arrays
     spikeTimeArray = np.array(spikeTimeArray)
-    print(spikeTimeArray)
+    # print(spikeTimeArray)
     NeurIndexArray = np.array(NeurIndexArray)
-    print(NeurIndexArray)
+    # print(NeurIndexArray)
 
 
     #Set parameters for loop

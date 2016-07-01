@@ -29,14 +29,16 @@ def count_PCA(spikeCountArray):
 
     # Spike time turned into a numpy array (to ensure type)
     spikeCountArray = np.array(spikeCountArray)
-    print('spikeCountArray: ', spikeCountArray)
+    # print('spikeCountArray: ', spikeCountArray)
 
     # #One line of code?
-    results = PCA(spikeCountArray.T)
-    print ('Proportion of Variance: ', results.fracs)
+    results = PCA(spikeCountArray)
+
+    # print ('Proportion of Variance: ', results.fracs)
+    # print ('Eigenvalues: ', results.s, '\n')
+    # print ('Weights: ', results.Wt, '\n')
+    # Wt = np.array(results.Wt)
+    # print ('Projected PCA: ', results.Y)
 
 
-    print ('Eigenvalues: ', results.s, '\n')
-    print ('Weights: ', results.Wt, '\n')
-    Wt = np.array(results.Wt)
-    print ('Projected PCA: ', results.Y)
+    return (results)
