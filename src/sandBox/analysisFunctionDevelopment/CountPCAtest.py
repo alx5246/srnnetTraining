@@ -10,7 +10,7 @@ from spikeMonToMatrix import spikeMon_To_Matrix
 from SpikeCount2D import spike_count2D
 from CountPCA import count_PCA
 import pickle
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 ########################################################################################################################
 # TESTING PCA of spike counts in user defined sub time intervals
@@ -80,7 +80,7 @@ spikeCount = np.array(spikeCount)
 # print (spikeCount)
 # print (len(spikeCount))
 # spikeCount.shape
-# print (timeInt)
+print (timeInt)
 
 ##################
 #PCA ON FIRE COUNT
@@ -88,5 +88,11 @@ spikeCount = np.array(spikeCount)
 
 PCAcount = count_PCA(spikeCountArray = spikeCount)
 print ('Proportion of Variance: ', PCAcount.fracs)
-print('Eigenvalues: ', PCAcount.s, '\n')
-print('Weights: ', PCAcount.Wt, '\n')
+# print('Eigenvalues: ', PCAcount.s, '\n')
+# print('Weights: ', PCAcount.Wt, '\n')
+
+#Plot Principal components in histogram
+a = PCAcount.fracs
+interval = [1,2,3,4,5,6,7,8,9,10]
+plt.hist(interval,weights =a)
+plt.show()
