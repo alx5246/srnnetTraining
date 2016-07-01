@@ -35,8 +35,6 @@ inputFile.close()
 
 NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
 NeurFire = np.array(NeurFire)
-
-
 # nSpike = len(spikeCount)
 # nTime = time_len = (len(time))
 # print (nTime)

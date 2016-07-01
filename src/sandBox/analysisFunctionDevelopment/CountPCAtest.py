@@ -7,9 +7,10 @@
 
 import numpy as np
 from spikeMonToMatrix import spikeMon_To_Matrix
-from SpikeCount import spike_count
+from SpikeCount2D import spike_count2D
+# # from CountPCA import count_PCA
 import pickle
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 ########################################################################################################################
 # TESTING PCA of spike counts in user defined sub time intervals
@@ -19,37 +20,68 @@ import matplotlib.pyplot as plt
 
 #   1) spikeMonToMatrix: takes spikemon.i and spikmon.t arrays from simulation and generates an output array where the
 #      rows correspond to neuron index and the columns are spike times
-#   2) SpikeCount: counts the number of spikes in a given interval. Output is an array sized N x Int (number of neurons
+#   2) SpikeCount2D: counts the number of spikes in a given interval. Output is an array sized N x Int (number of neurons
 #      by the number of sub time intervals).
 #   3) countPCA: take in array and performs PCA on array of spike counts for each neuron
 ########################################################################################################################
 
 
+
+
+##################
+#FAKE DATA
+##################
+# In the first test we will simply create some fake neuron output a specific frequency.
+
+# staticFiringPattern = np.linspace(start=0, stop=5, num=10)
+# staticFiringPattern = np.array(staticFiringPattern)
+# staticFiringPattern = ([ 0., 0.55555556, 1.11111111, 1.66666667, 2.22222222, 2.77777778, 3.33333333, 3.88888889, 4.44444444, 5.], [ 0., 0.3, 1.5, 1.66666667, 2.8, 2.77777778, 3.5, 3.88888889, 4.6, 5.], [ 0., 0.3, 1.6, 1.66666667, 2.5, 2.77777778, 3.2, 3.9, 4.3, 5.])
+# print (staticFiringPattern)
+
+
+##################
+#SIMULATED DATA
+##################
 # Get spikemon data for spike times from simulation and save to variable
 inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
 spikeTimes = pickle.load(inputFile)
 spikeTimesUnits = pickle.load(inputFile)
 inputFile.close()
-# print (spikeTimes)
-type (spikeTimes)
+# print (spikeTimes[0,:])
+# print (spikeTimes[1])
+# print (spikeTimes[2])
+# print (len(spikeTimes))
 
 # Get spikemon data for neuron indices from simulation and save to variable
 inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
 spikeTimeInds = pickle.load(inputFile)
 inputFile.close()
+# print (len(spikeTimeInds))
 # print (spikeTimeInds)
-
+# print (max(spikeTimeInds))
 
 #With neuron indices and spike times array, generate matrix that holds the spike times of each neuron in each element
 NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
 NeurFire = np.array(NeurFire)
+print (NeurFire)
+print (len(NeurFire))
+# print (NeurFire[0])
+
+# start = 0
+# stop = 5
+# dt = 1
+
+##################
+#FIRE COUNT MATRIX
+##################
+# Now find spike count
+# [spikeCount, timeInt] = spike_count2D(spikeTime=NeurFire[0], start=0 , stop=5, dt=1)
+# print (spikeCount)
+# print (timeInt)
 
 
-# # Find the spike times for a particular neuron
-# neuronSpikeTimes = spikeTimes[spikeTimeInds==99]
-# # Now find the firing rate
-# smoothedRate = instant_firing_rate(spikeTrain=neuronSpikeTimes, startTime=0.0, endTime=10.0, filterLength=5.0, var=1.)
-# plt.figure(2)
-# plt.plot(smoothedRate[1],smoothedRate[0])
-# plt.show()
+##################
+#PCA ON FIRE COUNT
+##################
 
+# PCAcount = count_PCA(spikeCountArray = spikeCount)

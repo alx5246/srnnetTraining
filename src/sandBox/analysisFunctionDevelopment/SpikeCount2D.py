@@ -21,19 +21,23 @@ def spike_count2D(spikeTime, start, stop, dt):
 
     # Spike time turned into a numpy array
     spikeTime = np.array(spikeTime)
+    print ('spikeTime: ', spikeTime)
 
     # Creat interval array - intervals in which to break up the time array - sub time interval array
     duration = stop - start                             # Total run time
     n = duration / dt                                   # How many subintervals from time horizon results from user defined interval
     splitInterval = np.linspace(0, duration, n + 1)     # create numpy array of subinterval over which to count spikes
+    print ('splitInterval: ', splitInterval)
 
     #Setup counters for loop
+
     row=0
-    col=0       #inex for for subinterval (length of splitInterval)
-    j=0         #index for splitInterval array.
-    k = 0       #index for new matrix that will store the grouped values from the split time array
+    col=0     #inex for for subinterval (length of splitInterval)
+    j=0     #index for splitInterval array.
+    k = 0   #index for new matrix that will store the grouped values from the split time array
+    n = 0   #row tracker
     counter = 0
-    SpikeCount = [[] for col in range(len(spikeTime))]
+    SpikeCount = [[] for m in range(len(spikeTime))]
 
     for row in range(len(spikeTime)+1):
         if row < (len(spikeTime)):
@@ -50,23 +54,34 @@ def spike_count2D(spikeTime, start, stop, dt):
 
                 elif (k < len(spikeTime[row])) and (spikeTime[row][k] > splitInterval[j]) and (spikeTime[row][k] <= splitInterval[j + 1]):
                     counter += 1
-
                     #if/else statements to determine which interator gets incremented
                     if k < (len(spikeTime[row])):
                         k += 1
-                    else:
-                        j += 1
-                        counter+=1
-                        SpikeCount[row].append(counter)
 
                 else:
                     SpikeCount[row].append(counter)
+                    j += 1
                     if (k==len(spikeTime[row])):
+                        #if j is less than the last time element
+                        if (j<len(splitInterval)-1):
+                            counter = 0
+                            # if this is the last interval
+                            if (j == len(splitInterval)-2):
+                                j = 0
+                                k = 0
+                                counter = 0
+                                SpikeCount[row].append(counter)
+                                break
+                        else: # j is the last time element
+                            j = 0
+                            k = 0
+                            counter = 0
+                    elif (j == (len(splitInterval)-1)):
                         j = 0
                         k = 0
                         counter = 0
+                        break
                     else:
-                        j += 1
                         counter = 0
 
         else:

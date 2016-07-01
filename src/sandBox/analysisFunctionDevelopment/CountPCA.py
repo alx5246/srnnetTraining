@@ -10,7 +10,7 @@
 import numpy as np
 from matplotlib.mlab import PCA
 
-def count_PCA(spikeTimeArray):
+def count_PCA(spikeCountArray):
     """
     FUNCTION DESCRIPTION
         This function takes as input an N-D numpy.array (where n is the number of neurons in network) is the  of spike
@@ -20,23 +20,23 @@ def count_PCA(spikeTimeArray):
 
     """
 
-#Toy data for spike times (rows) for each neuron (columns)
-# (i.e. row one has spike times for neuron one across the whole run)
-#This toy day emulates spike times that might occur for a three neuron network
-# spikeTimeArray = ([.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4], [.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4], [.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4])
-spikeTimeArray = ([.1, 1.3, 1.4, 2.2, 2.4, 3.5, 4.4, 4.4], [0, 1.3, 1.3, 2.4, 2.9, 3.4, 4.3, 4.8], [.5, 1.8, 1.9, 2.3, 2.6, 3.5, 4.3, 4.6])
+    #Toy data for spike times (rows) for each neuron (columns)
+    # (i.e. row one has spike times for neuron one across the whole run)
+    #This toy day emulates spike times that might occur for a three neuron network
+    # spikeCountArray = ([.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4], [.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4], [.1, 1.3, 1.4, 2.2, 2.7, 3.5, 4.3, 4.4])
+    # spikeCountArray = ([.1, 1.3, 1.4, 2.2, 2.4, 3.5, 4.4, 4.4], [0, 1.3, 1.3, 2.4, 2.9, 3.4, 4.3, 4.8], [.5, 1.8, 1.9, 2.3, 2.6, 3.5, 4.3, 4.6])
+    # spikeCountArray = ([2,0, 2, 5, 2],[2,6, 2, 1, 2],[3,2, 0, 2, 1])
+
+    # Spike time turned into a numpy array (to ensure type)
+    spikeCountArray = np.array(spikeCountArray)
+    print('spikeCountArray: ', spikeCountArray)
+
+    # #One line of code?
+    results = PCA(spikeCountArray.T)
+    print ('Proportion of Variance: ', results.fracs)
 
 
-# Spike time turned into a numpy array (to ensure type)
-spikeTimeArray = np.array(spikeTimeArray)
-print(spikeTimeArray)
-
-# #One line of code?
-results = PCA(spikeTimeArray.T)
-print ('Proportion of Variance: ', results.fracs)
-
-
-# print ('Eigenvalues: ', results.s, '\n')
-# print ('Weights: ', results.Wt, '\n')
-# Wt = np.array(results.Wt)
-# print ('Projected PCA: ', results.Y)
+    print ('Eigenvalues: ', results.s, '\n')
+    print ('Weights: ', results.Wt, '\n')
+    Wt = np.array(results.Wt)
+    print ('Projected PCA: ', results.Y)
