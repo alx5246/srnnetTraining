@@ -3,9 +3,10 @@
 # (Using python 3.4.4, and brian2 2.0rc)
 #
 # DESCRIPTION
-#   Function/method that produces an output vector of averaged spike counts across neurons per time duration
-#   This analysis was inspired by Lazar et al.(2009) Figure 5.b
-#   Goal is to find how many spikes occur in the network for each sub time interval
+#   Function/method that produces a scalar output of averaged correlation coefficents (of spike counts across neurons per
+#   time subinterval) for a time duration
+#   This analysis was inspired by Lazar et al.(2009) Figure 5.c
+#   Goal is to find the average correlation between neurons' firing counts over a time duration (not subinterval)
 
 import numpy as np
 
