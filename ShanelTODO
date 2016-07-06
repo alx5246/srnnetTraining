@@ -19,8 +19,16 @@ Shanel's TODO list
     Task Update (SCP): June 2016
         This script was completed and tested
 
-(3) Create PCA algorithm to quantify variance in the network (Lazar et al. 2009)
+(3) Create spike count distribution (Lazar et al. 2009)
     Task Description
         Algorithm should output the averaged spike count for each neuron (down column) for each time step
+    Task Update (SCP): July 2016
+        This script was completed and tested
+
+
+(4) CountCorrCoef.py
+    Task Description:
+        CountCorrCoef takes in N-D array of neuron spike counts for each user defined subinterval (dt) over a total
+        time duration (from script SpikeCount2D). Output is an averaged correlation coefficient for the time duration
     Task Update (SCP): July 2016
         This script was completed and tested
