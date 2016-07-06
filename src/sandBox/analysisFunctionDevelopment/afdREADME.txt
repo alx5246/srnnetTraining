@@ -40,4 +40,7 @@ FILES AND FOLDERS
     and the columns are spike times
 
     (6)SpikeCount2D.py
-        Short Description: spike count over time subintervals for a 2D vector input (spike times for each neuron)
+    Short Description: spike count over time subintervals for a 2D vector input (spike times for each neuron)
+
+    (7)CountDistribution
+    Short Description: Averages the number of spikes across neurons (down columns) for each time step
