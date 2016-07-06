@@ -1,5 +1,5 @@
 # S. Pickard
-# June 2016
+# July 2016
 # (Using python 3.4.4, and brian2 2.0rc)
 #
 # DESCRIPTION
@@ -8,7 +8,7 @@
 import numpy as np
 from spikeMonToMatrix import spikeMon_To_Matrix
 from SpikeCount2D import spike_count2D
-from CountPCA import count_PCA
+from CountDistribution import count_distribution
 import pickle
 import matplotlib.pyplot as plt
 
@@ -22,9 +22,8 @@ import matplotlib.pyplot as plt
 #      rows correspond to neuron index and the columns are spike times
 #   2) SpikeCount2D: counts the number of spikes in a given interval. Output is an array sized N x Int (number of neurons
 #      by the number of sub time intervals).
-#   3) countPCA: take in array and performs PCA on array of spike counts for each neuron
+#   3) CountDistribution: averages the number of spike counts across neurons for each time step
 ########################################################################################################################
-
 
 
 
@@ -77,53 +76,21 @@ dt = 1
 
 [spikeCount, timeInt] = spike_count2D(spikeTime=NeurFire, start=start , stop=stop, dt=dt)
 spikeCount = np.array(spikeCount)
-print (spikeCount)
+# print (spikeCount)
 # print (len(spikeCount))
 # spikeCount.shape
-print (timeInt)
+# print (timeInt)
 
-##################
-#PCA ON FIRE COUNT
-##################
-
-PCAcount = count_PCA(spikeCountArray = spikeCount)
-print ('Proportion of Variance: ', PCAcount.fracs*100)
-# print('Eigenvalues: ', PCAcount.s, '\n')
-# print('Weights: ', PCAcount.Wt, '\n')
+####################################
+#Network Spike Count Distribution
+####################################
+CountDist = count_distribution(NeuCountArray = spikeCount)
+print (CountDist)
 
 #Plot Principal components in histogram
-a = PCAcount.fracs
-
-data = range(10)
-data = np.array(data)
-
-d = np.diff(np.unique(data)).min()
-left_of_first_bin = data.min() - float(d)/2
-right_of_last_bin = data.max() + float(d)/2
-interval = [1,2,3,4,5,6,7,8,9,10]
-cum_var_exp = np.cumsum(a)
-plt.hist(interval, weights = a)
-plt.step(range(1,11), cum_var_exp, where='mid',
-         label='cumulative explained variance')
-axes = plt.gca()
-axes.set_xlim(1, 10)
-axes.set_ylim(0, 1)
-axes.set_xticklabels([.1])
-axes.set_yticklabels([])
-plt.show()
-
-
-
-
-
-
-major_ticks = np.arange(0, 1, .1)
-
-plt.stem(interval,a)
-plt.step(range(1,11), cum_var_exp, where='mid', label='cumulative explained variance')
-axes = plt.gca()
-axes.set_xlim(1, 10)
-axes.set_ylim(0, 1)
-axes.set_xticklabels([.1])
-axes.set_yticklabels([1])
+interval = range(1,len(timeInt))
+plt.stem(interval,CountDist)
+plt.title("Averaged Spike Counts Across Neurons for Each Time Step")
+plt.xlabel("Time Step")
+plt.ylabel("Spike Count")
 plt.show()
