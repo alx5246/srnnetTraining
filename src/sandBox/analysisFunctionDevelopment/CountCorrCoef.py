@@ -22,19 +22,23 @@ def count_Ave_CorrCoef(NeuCountArray):
 
     #Spike times array turned into a numpy array
     NeuCountArray = np.array(NeuCountArray)
-    # print(NeuCountArray)
+    print(NeuCountArray)
 
     #Generate array of normalized correlation coefficients (makes a symmetrical matrix)
     CountCorrCoef = np.corrcoef(NeuCountArray, rowvar = True)
+    print(CountCorrCoef)
 
     #Keep the upper triangle of symmetrical corr. coef. matrix and the diagnol of ones (the redunate information is converted to zeros)
     UpTriCorrCoef = np.triu(CountCorrCoef)
+    print (UpTriCorrCoef)
 
     #Eliminate the zeros (redunant info from symmetrical matrix) from the symmetrical corr. coef matrix
-    NoZero = np.extract(abs(UpTriCorrCoef) >0, UpTriCorrCoef)
+    NoZero = np.extract(abs(UpTriCorrCoef) > 0, UpTriCorrCoef)
+    print(NoZero)
 
     #Eliminate the ones from the symmetrical corr. coef matrix (eliminate the variances and keep covariances)
     CovariancesOnly = np.extract(abs(NoZero) < 1, NoZero)
+    print(CovariancesOnly)
 
     #Average the covariances
     AveCov = np.mean(abs(CovariancesOnly))

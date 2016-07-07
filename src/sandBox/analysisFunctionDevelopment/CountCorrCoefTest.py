@@ -58,21 +58,22 @@ inputFile.close()
 
 
 #With neuron indices and spike times array, generate matrix that holds the spike times of each neuron in each element
-NeurFire = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
-NeurFire = np.array(NeurFire)
-# print (NeurFire)
+NeurFireTime = spikeMon_To_Matrix(spikeTimeArray = spikeTimes, NeurIndexArray = spikeTimeInds)
+NeurFireTime = np.array(NeurFireTime)
+# print (NeurFireTime)
 
 
 ##################
 #FIRE COUNT MATRIX
 ##################
 # Now find spike count
-start = 0.0
-stop = 10.0
+start = 0
+stop = 10
 dt = 1
-[spikeCount, timeInt] = spike_count2D(spikeTime=NeurFire, start=start , stop=stop, dt=dt)
+[spikeCount, timeInt] = spike_count2D(spikeTime=NeurFireTime, start=start , stop=stop, dt=dt)
 spikeCount = np.array(spikeCount)
-print (spikeCount)
+# print (spikeCount)
+# print(len(spikeCount[0]))
 
 
 
