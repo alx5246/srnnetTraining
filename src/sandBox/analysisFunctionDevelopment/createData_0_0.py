@@ -60,8 +60,7 @@ u = u + d
 """
 
 # Make Neuron Group 1, where we have the single output Izh. type neuron of "RS" type
-G = NeuronGroup(3, model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
-#SCP changed neuron count from 1 to three for testing purposes (21JUN16)
+G = NeuronGroup(1, model=nurEqs, threshold='v > 30.', reset=resetEqs, refractory=2 * ms, method='euler')
 
 
 ########################################################################################################################
@@ -109,7 +108,7 @@ S = Synapses(P, G, model="""
 # Connect all neurons in group 'P' to group 'G'
 S.connect()
 
-# Set the weights equivelently
+# Set the weights equivalently
 S.w = 2.0
 
 ########################################################################################################################

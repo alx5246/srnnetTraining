@@ -74,8 +74,8 @@ NeurFire = np.array(NeurFire)
 # Now find spike counts for a specified time interval
 #User specified start, stop, and sub interval
 start = 0.0
-stop = 1
-dt = .01
+stop = 5
+dt = 1
 
 [spikeCount, timeInt] = spike_count2D(spikeTime=NeurFire, start=start , stop=stop, dt=dt)
 spikeCount = np.array(spikeCount)
