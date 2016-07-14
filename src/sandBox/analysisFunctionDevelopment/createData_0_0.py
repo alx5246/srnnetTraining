@@ -18,13 +18,19 @@ from brian2 import *
 import pickle
 import numpy
 
+import os
+import sys
+
+currentDir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(currentDir)
+
 ########################################################################################################################
 # Setting up Simultation Comilation
 ########################################################################################################################
 # (brian2's 'standalone' compilation option is fast, thus we want to compile into c++ before running
 
 # Nothing fancey where, we want to build on 'run'
-set_device('cpp_standalone', directory='compiledCppSim')
+set_device('cpp_standalone', directory=os.path.join(currentDir, 'compiledCppSim'))
 
 ########################################################################################################################
 # Setting up General Simultation
@@ -38,7 +44,7 @@ defaultclock.dt = 100. * usecond #Set the simulation clock
 ########################################################################################################################
 
 # With vlaues for (RS) type neuron used.
-a = .02
+a = .02 #
 b = .2
 c = -65.0
 d = 8.0
@@ -163,57 +169,57 @@ run(10*second)
 
 print("\n....Saving data, version 1 ......")
 
-outputFile = open("savedData_0/netOutput0_Syn_t.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_t.pkl"),"wb")
 pickle.dump(SynMonitor.w, outputFile)             #Save the date
-pickle.dump(get_unit(SynMonitor.w), outputFile)   #Save the units
+pickle.dump(get_unit(SynMonitor.t), outputFile)   #Save the units
+# outputFile.close()
+
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_w.pkl"),"wb")
+pickle.dumps(numpy.asarray(SynMonitor.t), outputFile) #Save the date
+pickle.dump(get_unit(SynMonitor.w), outputFile)      #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Syn_w.pkl","wb")
-pickle.dump(numpy.asarray(SynMonitor.t), outputFile) #Save the date
-pickle.dump(get_unit(SynMonitor.t), outputFile)      #Save the units
-outputFile.close()
-
-outputFile = open("savedData_0/netOutput0_Syn_Rhat.pkl","wb")
-pickle.dump(SynMonitor.R_hat, outputFile)            #Save the date
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_Rhat.pkl"),"wb")
+pickle.dumps(SynMonitor.R_hat, outputFile)            #Save the date
 pickle.dump(get_unit(SynMonitor.R_hat), outputFile)  #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Syn_K.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_K.pkl"),"wb")
 pickle.dump(SynMonitor.K, outputFile)            #Save the date
 pickle.dump(get_unit(SynMonitor.K), outputFile)  #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Neu_v.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Neu_v.pkl"),"wb")
 pickle.dump(NeuMonitor2.v, outputFile)              #Save the date
 pickle.dump(get_unit(NeuMonitor2.v), outputFile)    #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Neu_u.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Neu_u.pkl"),"wb")
 pickle.dump(NeuMonitor2.u, outputFile)            #Save the date
 pickle.dump(get_unit(NeuMonitor2.u), outputFile)  #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Neu_v.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Neu_v.pkl"),"wb")
 pickle.dump(NeuMonitor2.L, outputFile)               #Save the date
 pickle.dump(get_unit(NeuMonitor2.L), outputFile)     #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl"),"wb")
 pickle.dump(numpy.asarray(PoiMonitor.t), outputFile) #Save the data
 pickle.dump(get_unit(PoiMonitor.t), outputFile)      #Save the units
 outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_PoiNeu_SpikesInds.pkl"),"wb")
 pickle.dump(numpy.asarray(PoiMonitor.i), outputFile)   #Save the date
 pickle.dump(get_unit(PoiMonitor.i), outputFile)        #Save the units
-outputFile.close()
+# outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Neu_SpikesTimes.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Neu_SpikesTimes.pkl"),"wb")
 pickle.dump(numpy.asarray(NeuMonitor1.t), outputFile)    #Save the date
 pickle.dump(get_unit(NeuMonitor1.t), outputFile)         #Save the units
-outputFile.close()
+# outputFile.close()
 
-outputFile = open("savedData_0/netOutput0_Neu_SpikesInds.pkl","wb")
+outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Neu_SpikesInds.pkl"),"wb")
 pickle.dump(numpy.asarray(NeuMonitor1.i), outputFile)    #Save the date
 pickle.dump(get_unit(NeuMonitor1.i), outputFile)         #Save the units
 outputFile.close()
@@ -222,9 +228,13 @@ outputFile.close()
 print("Testing saved data, opening data just saved ... ")
 
 # For testing, we try opening the files using the pickle module/library
-inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
+inputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl"),"rb")
 spikeTimes = pickle.load(inputFile)
 spikeTimesUnits = pickle.load(inputFile)
 inputFile.close()
 print(spikeTimes)
 print(spikeTimesUnits)
+
+
+
+#Create Dictionary
