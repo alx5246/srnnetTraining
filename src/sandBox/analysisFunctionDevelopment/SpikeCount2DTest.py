@@ -39,6 +39,7 @@ import matplotlib.pyplot as plt
 #Simulation Data
 ################################
 # In the second test we will load some data that we have created in simulation and see what it looks like
+
 # Input spike times
 inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesTimes.pkl","rb")
 spikeTimes = pickle.load(inputFile)
