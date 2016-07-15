@@ -28,3 +28,21 @@ FILES AND FOLDERS
     (3) SpikeCount.py
     Short Description: spike count over time subintervals
     Long Description
+
+    (4) CountPCA
+    Short Description: principal compenent analysis script of spike times
+    Long Description
+
+    (5) spikeMonToMatrix.py
+    Short Description: Find element positions for each neuron with the neuron index array (spikemon.i) generated from
+    the spikmon class in the simulation. Once the elements for each neuron are found, these elements are then used to
+    find the corresponding spike time for said neuron. The ouput is a series of arrays where each row is a neuron index
+    and the columns are spike times
+
+    (6) SpikeCount2D.py
+    Short Description: spike count over time subintervals for a 2D vector input (spike times for each neuron)
+
+    (7) CountCorrCoef.py
+    Short Description: CountCorrCoef: takes in N-D array of neuron spike counts for each user defined subinterval (dt)
+    over a total time duration (from script SpikeCount2D). Output is an averaged correlation coefficient for the time
+    duration

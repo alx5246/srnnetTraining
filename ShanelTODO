@@ -1,7 +1,34 @@
 Shanel's TODO list
 
-(1) Create method/function to analzye firing rates as in (Lazar et al. 2009)
+(1) Create method/function to analzye spike counts as in (Lazar et al. 2009)
     Task Description
         In particular we are concerned with comparing long periods of time, as shown in Figure. 5, plot B. Develop your
         methods in one file, and call them from a second file to work on some test data. Do this in the
         sandbox/analysisFunctionDevelopment/ folder.
+
+    Task Update (SCP):
+        Function was completed (SpikeCount) and is in the sandBox with an accompanying tester script (SpikeCountTest)
+    Task Update (SCP):
+        An additional function was added (SpikeCount2D) in order to accept 2D time inputs (spike times for multiple
+        neurons)
+
+(2) Create PCA algorithm to quantify variance in the network (Lazar et al. 2009)
+    Task Description
+        Algorithm should output the variance proportion on each principal component and a figure like Lazar fig.3H should
+        be able to be constructed in main body of code
+    Task Update (SCP): June 2016
+        This script was completed and tested
+
+(3) Create spike count distribution (Lazar et al. 2009)
+    Task Description
+        Algorithm should output the averaged spike count for each neuron (down column) for each time step
+    Task Update (SCP): July 2016
+        This script was completed and tested
+
+
+(4) CountCorrCoef.py
+    Task Description:
+        CountCorrCoef takes in N-D array of neuron spike counts for each user defined subinterval (dt) over a total
+        time duration (from script SpikeCount2D). Output is an averaged correlation coefficient for the time duration
+    Task Update (SCP): July 2016
+        This script was completed and tested

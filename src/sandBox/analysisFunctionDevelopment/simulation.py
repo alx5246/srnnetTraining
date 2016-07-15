@@ -131,7 +131,7 @@ NeuMonitor2 = StateMonitor(G, ['v', 'u', 'L'], record=0, dt=.500*ms)
 # RUN
 ########################################################################################################################
 
-run(1*second)
+run(10*second)
 
 ########################################################################################################################
 ########################################################################################################################
@@ -168,16 +168,13 @@ run(1*second)
 #print("The type for numpy.asarry(NeuMonitor1.t) is: ", type(numpy.asarray(NeuMonitor1.t)))
 
 print("\n....Saving data, version 1 ......")
+Output = dict()
 
-outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_t.pkl"),"wb")
-pickle.dump(SynMonitor.w, outputFile)             #Save the date
-pickle.dump(get_unit(SynMonitor.t), outputFile)   #Save the units
-# outputFile.close()
+Output["w"]["data"] = pickle.dumps(SynMonitor.w)             #Save the date
+Output["w"]["units"] = pickle.dump(get_unit(SynMonitor.w))   #Save the units
 
-outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_w.pkl"),"wb")
-pickle.dumps(numpy.asarray(SynMonitor.t), outputFile) #Save the date
-pickle.dump(get_unit(SynMonitor.w), outputFile)      #Save the units
-outputFile.close()
+Output["t"]["data"]pickle.dumps(numpy.asarray(SynMonitor.t)) #Save the date
+Output["t"]["units"]pickle.dump(get_unit(SynMonitor.w))      #Save the units
 
 outputFile = open(os.path.join(currentDir, "savedData_0/netOutput0_Syn_Rhat.pkl"),"wb")
 pickle.dumps(SynMonitor.R_hat, outputFile)            #Save the date
@@ -238,3 +235,4 @@ print(spikeTimesUnits)
 
 
 #Create Dictionary
+return Output
