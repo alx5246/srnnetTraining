@@ -1,0 +1,75 @@
+all: main.exe
+
+clean:
+    del *.obj /s
+    del *.exe /s
+
+objects.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  objects.cpp /Foobjects.obj
+    
+main.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  main.cpp /Fomain.obj
+    
+code_objects\synapses_post_push_spikes.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_post_push_spikes.cpp /Focode_objects\synapses_post_push_spikes.obj
+    
+code_objects\synapses_pre_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_pre_codeobject.cpp /Focode_objects\synapses_pre_codeobject.obj
+    
+code_objects\neurongroup_resetter_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/neurongroup_resetter_codeobject.cpp /Focode_objects\neurongroup_resetter_codeobject.obj
+    
+code_objects\statemonitor_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/statemonitor_codeobject.cpp /Focode_objects\statemonitor_codeobject.obj
+    
+code_objects\synapses_stateupdater_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_stateupdater_codeobject.cpp /Focode_objects\synapses_stateupdater_codeobject.obj
+    
+code_objects\spikemonitor_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/spikemonitor_codeobject.cpp /Focode_objects\spikemonitor_codeobject.obj
+    
+code_objects\neurongroup_thresholder_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/neurongroup_thresholder_codeobject.cpp /Focode_objects\neurongroup_thresholder_codeobject.obj
+    
+code_objects\synapses_post_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_post_codeobject.cpp /Focode_objects\synapses_post_codeobject.obj
+    
+code_objects\statemonitor_1_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/statemonitor_1_codeobject.cpp /Focode_objects\statemonitor_1_codeobject.obj
+    
+code_objects\poissongroup_thresholder_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/poissongroup_thresholder_codeobject.cpp /Focode_objects\poissongroup_thresholder_codeobject.obj
+    
+code_objects\synapses_pre_initialise_queue.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_pre_initialise_queue.cpp /Focode_objects\synapses_pre_initialise_queue.obj
+    
+code_objects\spikemonitor_1_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/spikemonitor_1_codeobject.cpp /Focode_objects\spikemonitor_1_codeobject.obj
+    
+code_objects\synapses_synapses_create_generator_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_synapses_create_generator_codeobject.cpp /Focode_objects\synapses_synapses_create_generator_codeobject.obj
+    
+code_objects\neurongroup_stateupdater_codeobject.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/neurongroup_stateupdater_codeobject.cpp /Focode_objects\neurongroup_stateupdater_codeobject.obj
+    
+code_objects\synapses_post_initialise_queue.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_post_initialise_queue.cpp /Focode_objects\synapses_post_initialise_queue.obj
+    
+code_objects\synapses_pre_push_spikes.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  code_objects/synapses_pre_push_spikes.cpp /Focode_objects\synapses_pre_push_spikes.obj
+    
+network.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  network.cpp /Fonetwork.obj
+    
+synapses_classes.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  synapses_classes.cpp /Fosynapses_classes.obj
+    
+run.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  run.cpp /Forun.obj
+    
+brianlib\randomkit\randomkit.obj:
+    cl /c /EHsc /I. -Ibrianlib/randomkit /Ox /EHsc /w /fp:fast /arch:SSE2  brianlib/randomkit/randomkit.c /Fobrianlib\randomkit\randomkit.obj
+    
+
+main.exe: objects.obj main.obj code_objects\synapses_post_push_spikes.obj code_objects\synapses_pre_codeobject.obj code_objects\neurongroup_resetter_codeobject.obj code_objects\statemonitor_codeobject.obj code_objects\synapses_stateupdater_codeobject.obj code_objects\spikemonitor_codeobject.obj code_objects\neurongroup_thresholder_codeobject.obj code_objects\synapses_post_codeobject.obj code_objects\statemonitor_1_codeobject.obj code_objects\poissongroup_thresholder_codeobject.obj code_objects\synapses_pre_initialise_queue.obj code_objects\spikemonitor_1_codeobject.obj code_objects\synapses_synapses_create_generator_codeobject.obj code_objects\neurongroup_stateupdater_codeobject.obj code_objects\synapses_post_initialise_queue.obj code_objects\synapses_pre_push_spikes.obj network.obj synapses_classes.obj run.obj brianlib\randomkit\randomkit.obj 
+    link objects.obj main.obj code_objects\synapses_post_push_spikes.obj code_objects\synapses_pre_codeobject.obj code_objects\neurongroup_resetter_codeobject.obj code_objects\statemonitor_codeobject.obj code_objects\synapses_stateupdater_codeobject.obj code_objects\spikemonitor_codeobject.obj code_objects\neurongroup_thresholder_codeobject.obj code_objects\synapses_post_codeobject.obj code_objects\statemonitor_1_codeobject.obj code_objects\poissongroup_thresholder_codeobject.obj code_objects\synapses_pre_initialise_queue.obj code_objects\spikemonitor_1_codeobject.obj code_objects\synapses_synapses_create_generator_codeobject.obj code_objects\neurongroup_stateupdater_codeobject.obj code_objects\synapses_post_initialise_queue.obj code_objects\synapses_pre_push_spikes.obj network.obj synapses_classes.obj run.obj brianlib\randomkit\randomkit.obj  /LIBPATH:brianlib/randomkit advapi32.lib /OUT:main.exe

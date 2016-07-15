@@ -1,0 +1,16 @@
+neurongroup_resetter_codeobject	0
+neurongroup_stateupdater_codeobject	0.01
+neurongroup_thresholder_codeobject	0.002
+poissongroup_thresholder_codeobject	0.13
+spikemonitor_1_codeobject	0.005
+spikemonitor_codeobject	0.003
+statemonitor_1_codeobject	0.014
+statemonitor_codeobject	0.036
+synapses_post_codeobject	0.006
+synapses_post_initialise_queue	0
+synapses_post_push_spikes	0.001
+synapses_pre_codeobject	0.009
+synapses_pre_initialise_queue	0
+synapses_pre_push_spikes	0.01
+synapses_stateupdater_codeobject	0.046
+synapses_synapses_create_generator_codeobject	0
