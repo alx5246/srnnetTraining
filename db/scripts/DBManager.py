@@ -36,9 +36,9 @@ class DBManager(object):
             results = [self.collection.find_one(queryParams)]
         else:
             if sortScheme is not None:
-                results = self.collection.find(queryParams).sort(sortScheme)
+                results = [x for x in self.collection.find(queryParams).sort(sortScheme)]
             else:
-                results = self.collection.find(queryParams)
+                results = [x for x in self.collection.find(queryParams)]
         if hook is not None:
             return hook(results)
         return results
@@ -48,6 +48,32 @@ class DBManager(object):
             self.collection.insert_one(data)
         else:
             self.collection.insert_many(data)
+
+    def update(self, queryParams, updateData, updateOne=False):
+        if updateOne:
+            self.collection.update_one(queryParams, updateData)
+        else:
+            self.collection.update_many(queryParams, updateData)
+
+    def getAllKeysInCollection(self, paramsToIgnore=[]):
+        allParams = set()
+        for doc in self.query({}):
+            for key in doc.keys():
+                if key not in allParams and key not in paramsToIgnore:
+                    allParams.add(key)
+        return allParams
+
+    def getAllKeysAndValuesInCollection(self, paramsToIgnore=[]):
+        allParamsDict = {}
+        for key in self.getAllKeysInCollection(paramsToIgnore):
+            allParamsDict[key] = self.collection.distinct(key)
+        return allParamsDict
+
+    def delete(self, queryParams, deleteOne=False):
+        if deleteOne:
+            self.collection.delete_one(queryParams)
+        else:
+            self.collection.delete_many(queryParams)
 
     def closeConnection(self):
         self.database = None
