@@ -59,7 +59,7 @@ class DBManager(object):
         allParams = set()
         for doc in self.query({}):
             for key in doc.keys():
-                if key not in allParams and key in KeysToGet:
+                if key not in allParams and key in keysToGet:
                     allParams.add(key)
         return allParams
 
