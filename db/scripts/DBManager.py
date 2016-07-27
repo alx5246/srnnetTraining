@@ -15,6 +15,7 @@ class DBManager(object):
         else:
             self.dbUri = dbUri
         self.client = pymongo.MongoClient(self.dbUri)
+
         if databaseName is None:
             self.databaseName = os.environ.get("MONGODB_NAME")
             if self.databaseName is None:
@@ -22,6 +23,11 @@ class DBManager(object):
         else:
             self.databaseName = databaseName
         self.database = self.client[self.databaseName]
+        # if not self.database.authenticate(os.environ["DBFILESERVER_USERNAME"],
+        #                                   os.environ["DBFILESERVER_PASSWORD"], mechanism='SCRAM-SHA-1'):
+        #     print("Unable to authenticate access to database")
+        #     return
+
         self.collection = self.database[collectionName] if collectionName is not None else None
         self.collectionName = collectionName
 
