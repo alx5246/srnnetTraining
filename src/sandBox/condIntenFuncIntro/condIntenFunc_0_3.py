@@ -5,16 +5,21 @@
 #   This python file will have methods to create and train the conditional intensity functions that we use to predict
 #   the spiking of the neurons.
 #
-#   In the simplest version we will have a single filter, we look at its value for different delays, this means we only
-#   have to run a convolution operation for each neuron once!!! This should really speed up things.
+#   A generic outline of how to use the classes and functions here are as follows,
+#   (1) Create a "condItenFucManager" object : this class internally instantiates a "condInenFuncFilterManger" object
+#       as self.filterManger which handles all the different filters, and a self.condIntenFunctions list which will
+#       store all the condition-intensity-function objects. ....
+#   (2) ...
 
 import numpy
 import matplotlib.pyplot as plt
 import numpy.matlib
 
+
 ########################################################################################################################
-# Create Individual Elements of CIF
+# Function Generators
 ########################################################################################################################
+# These functions below create filter can get convolved with spike trains.
 
 
 def gaussianFilterGenerator(a, b, c, dt, startTime, endTime):
@@ -56,6 +61,7 @@ def halfGaussianFilterGenerator(a, b, c, dt, startTime, endTime):
     convVector = a * numpy.exp(-1. * (((xvals - b) ** 2.) / (2. * c ** 2.)))
     convVector[numpy.argwhere(xvals>=0)] = 0.
     return convVector
+
 
 def truncatedGaussianFilterGenerator(a, b, c, timeLength, dt, truncation):
     """
@@ -124,6 +130,7 @@ def convolveSpikeTimes(convVector, spikeTimes, startTime, stopTime, dt):
     #Output the entire array excpet the last values because they are not causel
     return [finalOutputArray, timeArray]
 
+
 def convolveSpikeTimesWthBackUp(convVector, spikeTimes, startTime, stopTime, dt, backupTime=0):
     """
     DESCRIPTION
@@ -131,17 +138,25 @@ def convolveSpikeTimesWthBackUp(convVector, spikeTimes, startTime, stopTime, dt,
     either case, the output vector is only going to be over a time interval from [startTime, stopTime]. The inclusion of
     backupTime, is to make the convolution more accurate at the edges.
 
-    :param convVector:
-    :param spikeTimes:
-    :param startTime:
-    :param stopTime:
-    :param dt:
-    :param backupTime:
+    The "stopTime" is NOT included, thus the the output is valid over [startTime, stopTime) or [startTime-backupTime,
+    stopTime)
+
+    :param convVector: 1D numpy.array, the filter that is convolved with a boolean version of the spike train to produce
+        resultant output.
+    :param spikeTimes: 1D numpy.array, spike times given in increasing order
+    :param startTime: double, the time at which to start tracking, NOTE please pay attention to how rounding to
+        time-steps occurs below
+    :param stopTime: double, the time at which to stop tracking, NOTE this last time-step is not included
+    :param dt: double, the interval of time that is considered a time-step
+    :param backupTime: double, the time that we must include backwards. In the case for how we are calculating filters,
+        the value for this backupTime is = truncation - (-timeLength) (see self.addFilter() method). Simply this is the
+        receding backwards time horizon over which we include spikes from such that the filtered result is correct
+        over the time interval we care about.
     :return: [filteredArray, timeArray] where filteredArray is a vector of filtered results at each time-step that
-             over the the doamian [startTime, stopTime], and timeArray is also a 1D numpy.array of equal length but
-             each part of the vector includes the corresponding time-step value.
+        over the the doamian [startTime, stopTime), and timeArray is also a 1D numpy.array of equal length but
+        each part of the vector includes the corresponding time-step value.
     """
-    # Use numpy.arange and do not include the last time-step
+    # Use numpy.arange and DO NOT include the last time-step
     timeArray = numpy.arange(start=startTime-backupTime, stop=stopTime, step=dt)  # This is going to be for the output
     boolArray = numpy.zeros(int((stopTime - (startTime-backupTime)) / dt))
     indsArray = ((spikeTimes - (startTime-backupTime))/dt)
@@ -154,28 +169,38 @@ def convolveSpikeTimesWthBackUp(convVector, spikeTimes, startTime, stopTime, dt,
     timeArray = timeArray[-numbStepsToGrab:]
     return [finalOutputArray, timeArray]
 
-########################################################################################################################
-# Generation of Coefficients and Tie-Togethers
-########################################################################################################################
 
-# We need a set of algorithms to create and track what the coefficients we have are correlated too. MUCH of what will be
-# here is perhaps overly hardcoded and needs to be broken up in future efforst.
+########################################################################################################################
+# CLasses
+########################################################################################################################
+# Below all the classes are provided to
+
 
 class conItenFunc:
     """
     DESCRIPTION
-    A class that contains CIF information for designated neurons that have such a CIF.
+    A class that contains all the conditional-intensity function information for a single neuron. More specifically,
+    this stores a list of off the individual functions that comprise the CIF (linear combinations constitute the entire
+    CIF) and stores an array indicating which filtered data in some condInenFuncFilterManager (see class below) to get
+    data from.
 
-    General Guidelines on useage:
-    (1) Add fucntions to the CIF object: typtically after an object of this class is created, you can add the functions
+    General guidelines on useage:
+    (1) Add functions to the CIF object: typically after an object of this class is created, you can add the functions
         that comprise the GLM suing the self.addFunction() method. A CIF as it is here described is a GLM that is passed
-        through a logistic function. Everytime one uses self.addFunction() mehtod you are adding another linear component
-        to the GLM
+        through a logistic function. Every time one uses self.addFunction() method you are adding another linear
+        component to the GLM
     (2) Add spikes and create data: once a simulation has been run and data is available there are two methods that need
         to be called. First is the self.appendSpikeArray() which takes in the new spikes and adds them to the memory
         here. Second is the self.createFeasibleFitleredDataSet() which takes in data from  a filter-manager object and
         creates a matrix of data that can be used to generate probabilities.
-    (3) Generate ...
+    (3) Find probabilities of spikes using data crated by running self.createFeasibleFilteredDataSet() to create data
+        and thrn running self.generateSpikeProbabilities() to actually crate probabiliteis.
+    (4) Update the GLM coefficients by using the stored data and created data generated by
+        self.createFeasibleFilteredDataSet()
+
+    THINGS TO ADD
+    (1) JULY 2016 : Garbage collection. Like in my other methods I need a method to garbage collect on saved spikes
+        that are in memory.
     """
 
 
@@ -183,32 +208,49 @@ class conItenFunc:
         """
         self.neuronGroup: integer, the group in which the neuron is from
         self.neuronId: integer, the neuron index or ID associated to the neuron within some group
-        self.functionType:  list of lists for the following forms,
-                            ['bias']
-                            ['gausLinSelf', a, b, c, timeLength, dt, timeDelay]
-                            ['gausLinSyn', otherNeuronGroup, otherNeuronId, a, b, c, timeLength, dt, timeDelay]
-                            ['gausQuadSynSelf', otherNeuronGroup, otherNeuronId, a, b, d, timeLength, dt, timeDelaySelf, timeDelayOther]
-        self.filterPostions: list of indices, where each index points to a row of filtered spike data, wherein that data is
-                             that which is needed to create the CIF. NOTE, if this value is -1, this means we do NOT search
-        self.filterStepsDelayed: the numeber of time-steps needed to look backwards in the filtered data vector
-        self.filterCoefficients: 2D numpy.array, Nx1, where N is the number of functions.
+        self.functionType: list of lists for the following forms,
+            ['bias']
+            ['gausLinSelf', a, b, c, timeLength, dt, timeDelay]
+            ['gausLinSyn', otherNeuronGroup, otherNeuronId, a, b, c, timeLength, dt, timeDelay]
+            ['gausQuadSynSelf', otherNeuronGroup, otherNeuronId, a, b, d, timeLength, dt, timeDelaySelf, timeDelayOther]
+        self.filterPoistions: list of indices, where each index stored points to one of the indices of filtered spike
+            data that is stored in some condInenFucFilterManager object (see condInenFuncFilterManager.filteredArrays),
+            The condInenFuncFilterManager.fitleredArrays is a list of 1D numpy.array objects. Each of the these objects
+            is the result of convolving some function (indicated appropriately here self.functionType) with a spike-
+            trian produced by the neuron (indicated here again in self.functionType). It is important to note that many
+            times the indices in self.filterPositions are duplicated, this occurs when the functions (as indicated in
+            self.functionType) are the identical except for the "timeDelay" value. For reasons of memory use, we try not
+            to duplicate filterd spike-trains where not necessary. This is done by storing only one filtered spike train
+            but then actually grabbing data from different points in time. The delay in time-steps is indicated in
+            self.filteredStepsDelayed (see below). NOTE, if this value is -1, this means we do not reference the
+            .filteredArrays and rather this is a bias term.
+        self.filterStepsDelayed: the number of time-steps backwards (in condInenFuncFilteredManager.filteredArrays) we
+            look backwards because of some function delay. Note that many functions that constitute the GLM can be
+            viewed as a time-delayed Gaussian (for example). Instead of storing, what literally is the same filtered
+            values over and over again in condInenFuncFilterManger.filterdArrays, we only store them once with a integer
+            that indicates how many time-steps backwards we need to look. NOTE this value is the same as that stored in
+            condInenFuncFilterManger.numbStepsToStore
+        self.filterCoefficients: 2D numpy.array, Nx1, where N is the number of functions, this is how we store all the
+            coefficients that need to get updated during training.
         self.dataMatrix: nXm 2D numpy.array, where the number of rows is equal to the number of data samples, and the
-                         number of columns equal to the number of coefficients. When this is created, it is ASSUMED,
-                         that the data samples come from consecutive time-steps, with the last data-point coming from
-                         the point in time last recorded here in self.spikeBoolTimeArray.
-        self.spikeBoolArray:
-
-        :param neuronGroup:
-        :param neuronId:
+            number of columns equal to the number of coefficients. When this is created, it is ASSUMED,
+            that the data samples come from consecutive time-steps, with the last data-point coming from
+            the point in time last recorded here in self.spikeBoolTimeArray.
+        self.spikeBoolArray: for each time-step (as noted in self.spikeTimeArray), we have either a 0 or 1 to indicate
+            no-spike or spike respectively
+        self.spikeTimeArray: the associated time of the spike given in self.spikeBoolArray
+        :param neuronGroup: integer, the neuron-group the neuron resides within
+        :param neuronId: integer, the neuron index within the group
+        :param dt: double, units: seconds, the time-step used for all the CIFs.
         """
         self.neuronGroup        = neuronGroup
         self.neuronId           = neuronId
-        self.dt                 = dt #The time-step all filters are sampled at in seconds
-        self.functionType       = [] #List of function types, for example [ ["gausLinSelf', a, b, c, timeLength, dt, timeDelay], ...]
-        self.filterPositions    = [] #The list of indicies, where each index value points to a filterd neuron spike train stored in condInenFuncFilterManager.filteredArrays
-        self.filterStepsDelayed = [] #The list of delays used for each of the filtered data.
-        self.filterCoefficients = numpy.array([[]]) #The list of coefficients that go along with each filter.
-        # This following array will change everytime we update data to be used to predict the states
+        self.dt                 = dt
+        self.functionType       = [] # List of function types, for example [ ["gausLinSelf', a, b, c, timeLength, dt, timeDelay], ...]
+        self.filterPositions    = [] # The list of indicies, where each index value points to a filterd neuron spike train stored in condInenFuncFilterManager.filteredArrays
+        self.filterStepsDelayed = [] # The list of time-step delays used for each of the filtered data.
+        self.filterCoefficients = numpy.array([[]]) # The list of coefficients that go along with each filter.
+        # This following array will change every time we update data to be used to predict the states
         self.dataMatrix     = numpy.array([]) # The 2D matrix of training or input data data to the CIF, corresponds to the last data given.
         self.spikeArray     = numpy.array([]) # Boolean array
         self.spikeTimeArray = numpy.array([]) # Time-step values that correspond to spikes stored in self.spikeArray
@@ -254,21 +296,37 @@ class conItenFunc:
     def addFunction(self, functionType, filterPosition, stepsDelayed):
         """
         DESCRIPTION
-        Add a new filter or functionType to the CIF object. NOTE, this method includes checking, thus before actually
-        adding the new information, we make sure it is not allready included. If it already is, then the given info is
+        Add a new functionType/filter to the CIF object. NOTE, this method includes checking, thus before actually
+        adding the new information, we make sure it is not all ready included. If it already is, then the given info is
         NOT added as no duplicates are allowed.
 
-        :param functionType:
-        :param filterPosition:
-        :param stepsDelayed:
-        :return:
+        When we say we are "adding" a filter/function, we are not here adding the actual array or numerical quantity or
+        expression. Rather we are adding a textual description of the filter ('functionType'), and the index of
+        the target neuron's fitlered spikes as stored in the condInenFuncFilterManager.filteredArrays ('filterPosition')
+        , and lastly we are storing the 'stepsDelayed' which are the time-steps of delay that cannot be stored
+        implicitly in the filter.
+
+        :param functionType: list of lists for the following forms, where each indicates the functional form of one of
+            the components in the GLM, the acceptable forms allowed are as follows:
+            ['bias']
+            ['gausLinSelf', a, b, c, timeLength, dt, timeDelay]
+            ['gausLinSyn', otherNeuronGroup, otherNeuronId, a, b, c, timeLength, dt, timeDelay]
+            ['gausQuadSynSelf', otherNeuronGroup, otherNeuronId, a, b, d, timeLength, dt, timeDelaySelf, timeDelayOther]
+        :param filterPosition: integer, index to a row of filtered spike data that is stored in some
+            condInenFucFilterManager object (see condInenFuncFilterManager.filteredArrays), wherein that data is
+            needed to create the CIF. NOTE, if this value is -1, this means we do not reference the .filteredArrays and
+            rather this is a bias term.
+        :param stepsDelayed: integer, the number of time-steps backwards (in reference to filtered data stored in some
+            condInenFuncFilterManager.filterdArrays) that we grab the data from for the current time-step.
+
+        :return: N/A
         """
         if not self.doesFunctionExist(functionType):
             self.functionType.append(functionType)
             self.filterPositions.append(filterPosition)
             self.filterStepsDelayed.append(stepsDelayed)
-            if self.filterCoefficients.size>0:
-                self.filterCoefficients = numpy.vstack((self.filterCoefficients,0.))
+            if self.filterCoefficients.size > 0:
+                self.filterCoefficients = numpy.vstack((self.filterCoefficients, 0.))
             else:
                 self.filterCoefficients = numpy.array([[0.]])
 
@@ -276,20 +334,29 @@ class conItenFunc:
     def appendSpikeArray(self, spikeTimes, startTime, endTime, dt):
         """
         DESCRIPTION
-        For each neuron that has a CIF, we keep track of its spikes in memory, new spikes are appended here. In
-        particular self.spikeArray and self.spikeTimeArray are appended. Data is only deleted if it overlaps currently
+        For each neuron that has a CIF, we keep track of its spikes in memory, new spikes are appended here. This may
+        be a bit of a memory suck as this likly replicates much of the memory in condInenFuncFilterManager object,
+        but it is here for ease of use and manipulation.
+
+        Here self.spikeArray and self.spikeTimeArray are appended. Data is only deleted if it overlaps currently
         stored values. We do not store spike-times explicity in this class, rather we have a boolean array (stored in
         self.spikeArray) and an array of equal size that indicates the time step (stored in self.spikeTimeArray)
 
-        This method should be called when new simulation is added and filtered so that the data here is up to date.
+        IMPORTANTLY, as in with the convolution functions, we do not store or include the 'endTime' time-step. That is
+        all the spikes that occur from t=endTime-dt -to- t=endTime are stored in the time-step = endTime-dt (this is
+        specifically the case when the duration of time given is an integer multiple of dt).
 
-        Note, methods will be provedied in this class to handle cleanup and deletion of memory in order to reduce memory
+        NOTE: This method should be called when new simulation is added and filtered so that the data here is up to
+        date.
+
+        NOTE: methods provided in this class to handle cleanup and deletion of memory in order to reduce memory
         overhead.
 
-        :param spikeTimes:
-        :param startTime:
-        :param endTime:
-        :return:
+        :param spikeTimes: 1D numpy.array, of neuron spike times
+        :param startTime: double, units - seconds
+        :param endTime: double, units - seconds
+
+        :return: N/A
         """
         # Create boolean array in place of the spike times, remember we do not include the endTime time-step!
         timeArray = numpy.arange(start=startTime, stop=endTime, step=dt)
@@ -352,15 +419,22 @@ class conItenFunc:
     def createFeasibleFilteredDataSet(self, filteredArrays):
         """
         DESCRIPTION
-        Here the filtered data is prepared to be used as data points for prediction of spike or no spike.
+        Here the filtered-data is prepared to be used as data for prediction of the this neuron's spikes. As this class
+        does not store that data (filtered spike trains from this and other neurons) it must be given here. There are
+        likely more efficient ways to do this (not passing data into this method) but it suffices for now.
 
-        We are parsing over 'filteredData' which is (or should be) litterally condInenFuncFilterManager.filteredArrays,
-        which is the list of numpy.arrays([]), the filtered data spike data stored in the filter-manager.
+        We are parsing  'filteredData' which is (or should be) litteraly the list of numpy.array objects stored in
+        condInenFuncFilterManager.filteredArrays.
 
-        :param filteredArrays:
+        When we are creating this data, we are ASSUMING and that all the data in 'filteredArrays' is all up to date, and
+        that all the most recent spike data has been used
+
+        :param filteredArrays: list of 1D numpy.arrays, each numpy.arrray is some neuron's spikes filtered by some
+            filter.
+
         :return: N/A
         """
-        # We want to know how many time-steps that can be possibly be used for each of the filtered data arrays. In
+        # We want to know how many time-steps that CAN be possibly be used for each of the filtered data arrays. In
         # order to do this we create an array 'maxSteps' that corresponds to each of the Cif storeded, and searches
         # through the filtered data to see how many time-steps we can keep.
         maxSteps = numpy.zeros(len(self.filterStepsDelayed))
@@ -371,23 +445,26 @@ class conItenFunc:
             if dlys>=0:
                 maxSteps[ind] = filteredArrays[self.filterPositions[ind]].size - dlys
             else:
-                maxSteps[ind] = 10000000
+                maxSteps[ind] = 10000000000
         maxStepsAllowed = int(numpy.amin(maxSteps)) # At most we take the minimum value.
         # Now given the maximum number of time-steps where we have a complete data set, we need to actually collect the
         # data and put into the correct form, in some N-D numpy.array([[]]) where each row is to be a sample of data,
-        # and then fill the data matrix.
+        # and then fill the data matrix, this matrix of data will be self.dataMatrix
         if maxStepsAllowed > 0:
             self.dataMatrix = numpy.ones((maxStepsAllowed, len(self.filterPositions)))
-            # Iterate over each column, which are the different data sources
+            # Iterate over each column, which are the different filtered spike trains.
             for i in range(self.dataMatrix.shape[1]):
-                # If we have a bias term, we just keep the ones, otherwise we put the correct data in the arrays.
+                # If we have a bias term, we just keep the ones, otherwise we put the correct data in the arrays. Data
+                # will be grabed from the "filteredArrays" input (list of numpy.array).
                 if self.filterStepsDelayed[i]>0:
-                    self.dataMatrix[:,i] = filteredArrays[self.filterPositions[i]][-(maxStepsAllowed+self.filterStepsDelayed[i]):-self.filterStepsDelayed[i]]
+                    self.dataMatrix[:, i] = filteredArrays[self.filterPositions[i]][-(maxStepsAllowed+self.filterStepsDelayed[i]):-self.filterStepsDelayed[i]]
                 elif self.filterStepsDelayed[i]==0:
-                    self.dataMatrix[:,i] = filteredArrays[self.filterPositions[i]][-maxStepsAllowed:]
+                    self.dataMatrix[:, i] = filteredArrays[self.filterPositions[i]][-maxStepsAllowed:]
             # Now flip the matrix so that we have the lastest time along the bottom row, and the data from the earlier
             # times along the first row.
-            self.dataMatrix = numpy.flipud(self.dataMatrix)
+            # self.dataMatrix = numpy.flipud(self.dataMatrix)
+                # AJL July 2016, this has been changed because the latest, most recent times are already along the
+                # bottom row
         else:
             # If there is no data, we just leave an empty matrix.
             self.dataMatrix = numpy.array([])
@@ -396,21 +473,19 @@ class conItenFunc:
     def generateSpikeProbabilities(self):
         """
         DESCRIPTION
-        Here the probabiliteis of a neuron spike is calculated. This calcualtion is based on data stored in
+        Here the probabilities of this neuron's spike(s) is calculated. This calculation is based on data stored in
         self.dataMatrix which must have already be calculated. The data in self.dataMatrix is organized such that each
         row is data input for one time-step and each column represents a different component of the CIF.
 
-        It is assumed that self.dataMatrix has been updated and given the most up to date data... and thus the data
-        corresponds to the most up to date time values as well!
+        It is assumed that self.dataMatrix has been updated and given the most up to date data.
 
-        :return:
+        :return: the probability of this neuron spiking at each time-step (number of time-steps =
+        self.dataMatrix.shape[0] which is the given number of data points available)
         """
         # Numpy is weird, they use the method 'dot' to handle matrix multiplication.... ugg I do not like that
         if self.dataMatrix.shape[0]>0 and self.dataMatrix.shape[1]>0:
-            ddd = 1
             glmOutput = numpy.dot(self.dataMatrix, self.filterCoefficients)
             glmOutput = 1./(1. + numpy.exp(-1.*glmOutput))
-            dd = 2
         else:
             glmOutput = numpy.array([])
         return glmOutput
@@ -419,35 +494,40 @@ class conItenFunc:
     def updateCifCoeffsSGD(self, learningRate):
         """
         DESCRIPTION
-        Here, assuming both the self.dataMatrix and self.spikeArray are both up todate, we go ahead and run stochastic
-        gradient descent to update the CIF coefficients.
+        Assuming self.dataMatrix, self.spikeArray, and self.spikeTimeArray are all up to date (self.dataMatrix gets
+        updated in a different method that the other two) we go ahead and run stochastic gradient descent to update the
+        CIF coefficients in the GLM.
 
-        IMPORTANT note, it is assumed that the data stored in self.dataMatrix corresponds to the last values stored in
-        self.spikeArray, essentially that the data was produced from the same time. This should be the case if the input
-        data from the simulation is used to (1) update the filter-manager class obj, (2) then update the self.spikeArray
-        and then (3) used to create the self.dataArray
+        IMPORTANT, it is ASSUMED that the data stored in self.dataMatrix, self.spikeArray, and self.spikeTimeArray all
+        have been updated with the same data. This should be the case if the input data from the simulation is used to
+        (1) update the filter-manager class obj (condInenFuncFilterManager.filterSpikeTrainData(), (2) then using the
+        same data update self.spikeArray and self.spikeTimeArray using self.appendSpikeArray(), and then subsequently
+        calling self.createFeasibleFilteredDataSet(). These actions should be automated in the
+        condItenFuncManger.parseNewSpikeTrainData() method.
 
-        :param learningRate:
-        :return:
+        :param learningRate: double, controls rate at which SGD updates
+
+        :return: N/A
         """
         if self.dataMatrix.shape[0]>0 and self.dataMatrix.shape[1]>0:
-            # Generate the probability of a spike at each time-step according to the model currently stored.
-            # predictionOutput = self.generateSpikeProbabilities()
             # Iterate over all the stored data points
             numbIts = self.dataMatrix.shape[0]
-            for i in range(self.dataMatrix.shape[0]):
+            for i in range(numbIts):
+                # Generate probabilities
                 predictionOutput = self.generateSpikeProbabilities()
                 # Grab the last spikes (stored as 0s and 1s) in self.spikeArray based on how many we need (the number is
-                # equal the size of the self.dataMatrix). Note that the last row in self.dataMatrix corresponds to the most
-                # current time-step so we have to be careful about whic data point is grabbed.
+                # equal the size of the self.dataMatrix). Note that the last row in self.dataMatrix corresponds to the
+                # most current time-step so we have to be careful about whic data point is grabbed.
                 spikeVal = self.spikeArray[-(numbIts-i)]
-                self.filterCoefficients = self.filterCoefficients + learningRate*(spikeVal - predictionOutput[i])*numpy.transpose(self.dataMatrix[i,:])
+                # If I slice as usual the self.dataMatrix (like in MATLAB) numpy will reduce the dimensions. I can fix
+                # this by using the 'None' keyword
+                self.filterCoefficients = self.filterCoefficients + learningRate*(spikeVal - predictionOutput[i, 0])*numpy.transpose(self.dataMatrix[i, None])
 
 
 class condInenFuncFilterManager:
     """
     DESCRIPTION
-    Class: manages different filter-funtions, filters spike trains, and stores results.
+    Class: manages different filter-functions, filters spike-trains, and stores results.
 
     General Guidelines on usage:
     (1) Adding new filters: In order to add a new filter-function for some neuron, one will typically first call
@@ -471,38 +551,40 @@ class condInenFuncFilterManager:
 
     def __init__(self):
         """
-        DESCRIPTION
-        Conditional Intensity Filter Manager, this class manages all of the filters used to construct the CIFs for each
-        given neuron. In this class there are 3 varaibles.
-
-        self.filterIdentities: list of list, [ [filter 1 info], [filter 2 info], ... ], where in each sublist the
-                               following variants are acceptable,
-                               ['gaussian', a, b, c, timeLength, dt, timeDelay, truncation, filterIndex]
-        self.filters:          list of 1D numpy.array, filters where each filter is something we convolve the spike-
-                               trains that have been recorded.
-        self.filtersDt:        list of time-step values for each filter, this list should be as long as the
-                               self.filters list.
-        self.filtersBackUpTime list of the amount of time we want to inlcude backwards in order to make the filters
-                               accurate. This is because we do not want to neglect spikes that were formallay recorded.
-        self.neuronToFilter    2D numpy.array, an example row being [ [neuron-group, neuron Id, filterIndex], ... ],
-
-        self.spikeTrainMemory  a list of 1D numpy.array, where in each array we have all the spike times, [ [t1, t2, ...
-                               tn], ... ]
-        self.filteredArrays    a list of 1D numpy.array, where in eacy array we have all the
+        self.filterIdentities: list of list, [ [filter 1 info], [filter 2 info], ... ], where in each sub-list the
+            following variants are acceptable:
+            ['gaussian', a, b, c, timeLength, dt, timeDelay, truncation, filterIndex] where 'filterIndex' refers to the
+            index or position of the actual filter as located within the self.filters list.
+        self.filters: list of 1D numpy.array, filters where each filter is something we convolve the spike-trains that
+            have been recorded.
+        self.filtersDt: list of time-step values for each filter, this list should be as long as the self.filters list.
+        self.filtersBackUpTime: list of the amount of time we want to include backwards in order to make the filters
+            accurate. This inclusion of spikes over some backwards horizon is necessary in order insure the accuracy
+            of the ouput for the interval of time we actually care about.
+        self.neuronToFilter: 2D numpy.array, an example row being [ [neuron-group, neuron Id, filterIndex], ... ]
+        self.numbStepsToStore: 2D numpy.array, the number of time-stpes we need to keep for the next time we need to
+            run calculations, essentially this si the maximum delay we need (July 2016, used in garbage collection and
+            debugging)
+        self.actualDelay: 2D numpy.array, tells us how much dealy each filter has (July 2016, I think this is now only
+            for debugging)
+        self.filteredArrays: a list of 1D numpy.array, where in each array has the filtered spike trian as indicated in
+            self.neuronToFilter
+        self.filteredArraysTimeValues: list of 1D numpy.array, where in each array has the time-step of the filterd
+            value in self.filteredArrays. Thus this list and self.filteredArrays are essential to each other. One gives
+            the actual fitlered value, and the other the time in which that value occurs at.
+        self.spikeTrainMemory:  a list of 1D numpy.array, where in each array we have all the spike times, [ [t1, t2, ...
+                               tn], ... ]. The old spike times that are kept around.
         """
-        #The size of the following list is based on the number of unique fiters and nuron combos
-        self.filterIdentities     = [] #Association between filter-identity/filter-type to an actual filter in self.filters
-
-        #The size of the following lists is eqaul to the number of unique convolution filters needed
-        self.filters              = [] #The actual convoltuion filters which are 1D numpy.arrays
-        self.filtersDt            = [] #The time-step associate to filter in self.filters
-        self.filtersBackUpTime    = [] #The amount of time before we need to include backwards for each filter in self.filters
-
-        #The size of the following are equal to the number of unique neuron-convoFilter pairs
+        # The size of the following list is based on the number of unique fiters and nuron combos
+        self.filterIdentities     = [] # Association between filter-identity/filter-type to an actual filter in self.filters
+        # The size of the following lists is eqaul to the number of unique convolution filters needed
+        self.filters              = [] # The actual convoltuion filters which are 1D numpy.arrays
+        self.filtersDt            = [] # The time-step associate to filter in self.filters
+        self.filtersBackUpTime    = [] # The amount of time before we need to include backwards for each filter in self.filters
+        # The size of the following are equal to the number of unique neuron-convoFilter pairs
         self.neuronToFilter            = numpy.array([[]]) # The association between filters and neurons, numpy.array([ [neuron-group, neuron Id, filterIndex], ...]
         self.numbStepsToStore          = numpy.array([[]]) # The number of time-steps we need to keep for the next time we run calculations, essentially this is the maximum delay we need
         self.actualDelay               = numpy.array([[]]) # Realy just kept as a measure to debug, this tells us how much of a delay each filter has.
-
         self.filteredArrays            = [] # The filtered spike-train output at each time-step resultant from convolution operation
         self.filteredArraysTimeValues  = [] # The time-step corresponding to each filtered output time-step, should be the same size as the filterArray
         self.spikeTrainMemory          = [] # The old spike times we want to keep for each neuron
@@ -511,22 +593,26 @@ class condInenFuncFilterManager:
     def getFilterIndex(self, filterInfo, timeDelay=None, truncation=None):
         """
         DESCRIPTION
-        Given a filter input, it is determined if this ....
-        :param filterInfo: a list of filter information, where the following varients are acceptable
-                           ['gaussian', a, b, c, timeLength, dt]
-        :return: filter index (integer) -or- None
+        Given a filter info, along with either a 'timeDelay' or a 'truncation' we will find if the filter already exists
+        and should it exist, this will return the position of the associated filter (a 1D numpy.array) within the list
+        of said filters denoted as self.filters.
+
+        :param filterInfo: a list of filter information, where the following variants are acceptable,
+            ['gaussian', a, b, c, timeLength, dt]
+
+        :return: filter index (integer) -or- -1
         """
-        toReturn = -1 #Initialize the output
+        toReturn = -1 # Initialize the output
         if filterInfo[0]=='gaussian':
             for aList in self.filterIdentities:
                 if aList[0:6]==filterInfo:
                     if timeDelay!=None:
                         if aList[6]==timeDelay:
-                            toReturn = aList[-1] #We always store the filterIndex last
+                            toReturn = aList[-1] # We always store the filterIndex last
                             break
                     else:
                         if aList[7]==truncation:
-                            toReturn = aList[-1]  # We always store the filterIndex last
+                            toReturn = aList[-1] # We always store the filterIndex last
                             break
         return toReturn
 
@@ -534,10 +620,13 @@ class condInenFuncFilterManager:
     def getFilterTruncation(self, filterInfo, timeDelay=None, filterIndex=None):
         """
         DESCRIPTION
-        Given a filter input, it is determined is this...
+        Given a filter info, along with either a 'timeDelay' or a 'filterIndex' we will find if the filter already exists
+        and should it exist, this will return the truncation associated with the filter.
+
         :param filterInfo: a list of filter information, where the following varients are acceptable
-                           ['gaussian', a, b, c, timeLength, dt]
-        :return: filter truncation
+            ['gaussian', a, b, c, timeLength, dt]
+
+        :return: filter truncation -or- -1
         """
         toReturn = -1  # Initialize the output
         if filterInfo[0] == 'gaussian':
@@ -559,13 +648,13 @@ class condInenFuncFilterManager:
         DESCRIPTION
         This function is primarily for debugging. A 'filterIndex' is given, which correspond to the index of
         (1) self.filters, (2) self.filtersDt, and (3) self.fitlersBackUpTime. Given this number we want to see which
-        function-type describes the filter stored in self.filters[fitlerIndex]
+        function-type describes the filter stored in the list of such filters, self.filters[fitlerIndex].
 
-        :param filterIndex: integer, the index of a particular filter in self.filters, (self.fitlers is a list of 1D
-                            numpy.arrays() that are convolved with a spike train).
+        :param filterIndex: integer, the index of a particular filter in self.filters, (self.filters is a list of 1D
+            numpy.arrays() that are convolved with a spike train).
 
         :return: list of filter information, in the case the filter is of 'gaussian' type, then we return a list with
-                 ['gaussian', a, b, c, timeLength, dt]
+            ['gaussian', a, b, c, timeLength, dt]
         """
         toReturn = ["NO FUNCTION STORED"]
         for filtTypes in self.filterIdentities:
@@ -576,7 +665,19 @@ class condInenFuncFilterManager:
         return toReturn
 
 
-    def getNeuronAndFilterIndex(self,neuronGroupId, neuronId, filterIndex):
+    def getNeuronAndFilterIndex(self, neuronGroupId, neuronId, filterIndex):
+        """
+        DESCRIPTION
+        Given the the quantities to identify the neuron, which are 'neuronGroupId' and 'neuronId', and along with the
+        'filterIndex' which corresponds to the location of some filter within the list of filters, self.filters, we
+        find if this combination already exists and if it does what is the index within self.neuronToFilter.
+
+        :param neuronGroupId: integer, the neuron-group ID
+        :param neuronId: integer, the neuron ID within its group
+        :param filterIndex: integer, the index of the filter as found in self.filters
+
+        :return: index of the combination in self.neuronToFilter -or- -1 should it not exist
+        """
         inds = numpy.where((self.neuronToFilter == (neuronGroupId, neuronId, filterIndex)).all(axis=1))
         if inds[0].size > 0:
             dummyOut = inds[0][0]
@@ -588,34 +689,48 @@ class condInenFuncFilterManager:
     def addFilter(self, filterInfo):
         """
         DESCRIPTION
-        Adds a new filter (a filter in this case means something specifically that is convolved with spike trains) if
-        the filter described by the input 'filterInfo' does not alreayd exist. Imporanatly, this method includes internal
+        Adds a new filter, where a "filter" here is something specifically that is will be convolved with spike trains.
+        The full filtered is described by the input 'filterInto'. Importantly, this method includes internal
         checks to make sure no duplicates are added. Thus, if a filter is specified in the input that is already stored,
-        a dumplicate will NOT be added.
+        a duplicate will NOT be added.
+
+        This function is NOT preparing of matching neurons with filters. It is simply here to add new filters in needed
+        and not already there. To see how neurons are matched with filters see the methods below,
+        self.addNeuronAndFilter() and self.initFilterRecorders().
 
         An example of 'filterInfo is ['gaussian', a, b, c, timeLength, dt, timeDelay]. Now remember, there maybe more
         self.filterIdentities than actual self.fitlers. This is because many of those filters described in the
         self.filterIdentities are actually produce the same output just delayed by different time-steps!
 
-        :param filterInfo: a list of filter information, where the following varients are acceptable,
-                           ['gaussian', a, b, c, timeLength, dt, timeDelay]
+        Some quick notes on time-delays, time-lengths, and truncations. A filter (as of the time of this writing July
+        2016) has a timeLength which is 1/2 of the filter length. If we assume the filter is centered at some origin,
+        the 'timeLength' is from the origin to the most positive value in the domain. The time-delay is the amount of
+        time the filter is delayed. That is how far the origin of the filter is shifted to the left. Truncation is not
+        given, it is calculated below as min(timeLength, timeDelay) and indicates the actual domain of the filter which
+        is [-timeLength, truncation].
 
-        :return: [truncation, filterIndex, timeStepsDelayed, implicitDelay]
+        IMPORTANTLY if the truncation value is > 0, then a time-delay is implicitly store in the filter. If the
+        time-delay is greater than the time-length, then we will also internally create 'timeStepsDelayed' which is to
+        store the amount of delay greater than that stored implicitly (time-length).
+
+        :param filterInfo: a list of filter information, where the following variants are acceptable,
+            ['gaussian', a, b, c, timeLength, dt, timeDelay]
+
+        :return: list with the folloring values, [truncation, filterIndex, timeStepsDelayed]
         """
         if filterInfo[0]=='gaussian':
             # First determine the number of time-steps we need to look backwards in memory of the filtered spike-trains.
-            # That is some filters are time-delayed gaussians. Each of the fitlers created implecitly have a delay
-            # immbedded. However if the the the time-dealy is longer then the filter's 'timeLength', then we actually
-            # have to store a dealy value!.
+            # That is some filters are time-delayed Gaussians. Each of the filters created implicitly have a delay
+            # emmbedded. However if the the the time-delay is longer than the length of the filter ("timeLength") then
+            # then there will be an addition of time-steps to look backwards.
             timeDelay  = filterInfo[6]
             timeLength = filterInfo[4]
             truncation = min(timeLength, timeDelay)
-            timeStepsDelayed = int((timeDelay - truncation)/filterInfo[5])
+            timeStepsDelayed = int((timeDelay - truncation)/filterInfo[5]) # This is the number of time-steps backwards we need to look backwrds.
             if self.getFilterIndex(filterInfo[0:6], timeDelay=filterInfo[6]) != -1:
-            #if self.getFilterIndex(filterInfo[0:6], timeDelay=None, truncation=truncation):
                 # This filter already exists, which means we only have to grab the relevant output details which in this
                 # case is the size of the filter's truncation, and the filter-index.
-                dummyList = [self.getFilterTruncation(filterInfo[0:6],timeDelay=filterInfo[6]), self.getFilterIndex(filterInfo[0:6],timeDelay=filterInfo[6]), timeStepsDelayed]
+                dummyList = [self.getFilterTruncation(filterInfo[0:6], timeDelay=filterInfo[6]), self.getFilterIndex(filterInfo[0:6], timeDelay=filterInfo[6]), timeStepsDelayed]
             else:
                 # Filter of that type does not exist, Remember, though some filters are different,
                 # they essentially are the same filter convolved with a spike train, but with differnet delay values.
@@ -623,13 +738,14 @@ class condInenFuncFilterManager:
                     # Filter exists with different time-delay (but really same filter/convolution operation). Record the
                     # filterInfo, but do not create a new filter for convolution.
                     newFilterIndex = self.getFilterIndex(filterInfo[0:6], truncation=truncation)
-                    filterInfo.append(truncation) #Append to the filter information the truncation time
-                    filterInfo.append(newFilterIndex) #Append to the filter the index of the filter in self.filters
+                    filterInfo.append(truncation) # Append to the filter information the truncation time
+                    filterInfo.append(newFilterIndex) # Append to the filter the index of the filter in self.filters
                     self.filterIdentities.append(filterInfo)
                 else:
                     # In this case we have to create a new filter because it does not already exist. Firstly we want
                     # to determine the filter-backup-time. This is the amount of time over some backwards horizon
-                    # wherein we need to store neuron spikes in memory so the filter operations are accurate.
+                    # wherein we need to store neuron spikes in memory so the filter values over the time we care
+                    # about is correct!
                     filBackUpTime = truncation - (-1.*timeLength)
                     self.filters.append(truncatedGaussianFilterGenerator(filterInfo[1], filterInfo[2], filterInfo[3], filterInfo[4], filterInfo[5], truncation))
                     self.filtersDt.append(filterInfo[-2])
@@ -648,21 +764,25 @@ class condInenFuncFilterManager:
     def addNeuronAndFilter(self, neuronGroupId, neuronId, filterIndex, timeStepsDelayed, timeDelay):
         """
         DESCRIPTION
-        This class contians/stores filters (which are things we convolve spike trains with). It also contains variables
-        to store the results of the convoltuion with spike-trains. The question that remains, what filters need to be
-        applied to which spike trains? This problem is solved with self.neuronsToFilter which is a 2D numpy.array of
+        This class contains/stores filters (which are things we convolve spike trains with). It also stores the results
+        of convoltuion between said filter with neuron spike-trains. The question that remains is what filters need to
+        be applied to which spike trains? This problem is solved with self.neuronsToFilter which is a 2D numpy.array of
         size NX3, where each row has the format [neuron-group, neuron id, filterIndex]. The filter index in this case
         is the index of the filter stored here in self.filters.
 
-        Here a new row is added to self.neuronsToFilter only if, that row does NOT already exist. That is, internatlly
-        this method will check to make sure this is not a duplicate entry. If it is, then a new row will not be added.
+        Here a new row is added to self.neuronsToFilter only if, that row does NOT already exist. That is this method
+        will internally check to make sure this is not a duplicate entry. If it is, then a new row will not be added.
+
+        Other than self.neuronsToFilter, self.numbStepsToStore and self.actualyDelay will be updated as well though
+        those two variables (as of July 2016) seem to be more for debugging purposes.
 
         :param neuronGroupId: integer, the neurons's group id
         :param neuronId: interger, the neurons index in its group
         :param filterIndex: the index in self.neuron
-        :param timeStepsDelayed: how many steps backwards in filterd data we have to look, some filters have implicit
-                                 delays and will not actually have any steps to look backwards.
-        :return: the index of the self.filteredArrays we will access to get the data needed for CIFs
+        :param timeStepsDelayed: how many steps backwards in filtered data we have to look, some filters have implicit
+            delays and will not actually have any steps to look backwards.
+
+        :return: integer, index of self.filteredArrays where the filterd spike trains will be stored.
         """
         if self.neuronToFilter.size == 0: # It the original array is empty, then we need to make the first row
             self.neuronToFilter = numpy.array([[neuronGroupId, neuronId, filterIndex]])
@@ -688,11 +808,16 @@ class condInenFuncFilterManager:
     def initFilterRecorders(self):
         """
         DESCRIPTION
-        Once all the filters needed have been given via the class method self.addFilter(), and all the neurons that need
+        Once all the filters needed have been added via self.addFilter(), and all the neurons that need
         their spike trains filtered have been indicates via the class method self.addNeuronAndFilter(), then this
-        function should be called.
+        function MUST BE CALLED.
 
-        This function initializes the class variables that store all the spikes and filtered spiek trains.
+        This function initializes the class variables that store all the spikes, and filtered spike trains. In
+        particular this will be self.filteredArrays, self.filteredArraysTimeValues, and self.spikeTrainMemory. The
+        first of these two are lists of 1D numpy.array objects that store the filtered and time of filtered values
+        respectively. The last class variable will store again a list of numpy.array objects, but each numpy.array will
+        sotre spike times of the appropriate neuron as indicated by self.neuronToFilter. Thus self.neuronToFilter
+        corresponds to each of this initialized variables.
 
         It is only allowed to call this operator once. Every time it gets called if will overwrite all formally stored
         data.
@@ -700,7 +825,7 @@ class condInenFuncFilterManager:
         NOTE: some of the memory will be duplicates (at the moment) where we are repeatedly storing the spikes from the
         same neuron over and over again.
 
-        :return:
+        :return: N/A
         """
         #Simply initializing here, this WILL overwrite data if it already exists
         self.filteredArrays = [numpy.array([]) for i in range(self.neuronToFilter.shape[0])]
@@ -716,25 +841,26 @@ class condInenFuncFilterManager:
         the brian2.SpikeMonitor objects are associated with by the also given input 'listOfNeuronGroups'. These two
         inputs must be lists of the same length as they correspond to eachother.
 
-        It is important to make sure that 'startTime' is far enough backwards that we have an overlap in time so that
-        the convolution filters are accurately calculated.
-
         IMPORTANT to note, we assume data is given each time for ALL neurons that are being tracked in
         self.neuronsToFilter! This is very important. If there is no spike data for one of those neurons, it is assumed
         that said neuron produced zero spikes from startTime to endTime.
 
-        IMPORTANT to note, the last time-step at time=endTime is NOT included or stored.
+        IMPORTANT to note, the last time-step at time=endTime is NOT included or stored. This is because of the way we
+        time-step through data. Each time-step includes all the spikes up to, but not including the starting point of
+        the next time-step.
 
         IMPORTANT to note, the brain2.SpikeMonitor objects must index their neurons, in the same way that the neurons
         have been index in all the filter-manager variables. For example ,if a neuron belongs to neuron-group 2, with
         neuron-id of 5, then we will expect the brain2.SpikeMonitor object for neuron-group2 to have the spikes stored
         in said object ot be associated with index 5.
 
-        :param listOfSpikeObjs:
-        :param listOfNeuronGroups:
-        :param startTime:
-        :param endTime:
-        :return:
+        :param listOfSpikeObjs: list of brian2.SpikeMonitor class objects
+        :param listOfNeuronGroups: list of neuron-groups, simply associating each SpikeMonitor object with a particular
+            neuron-group and the neurons in said group
+        :param startTime: double, the start-time of the added data
+        :param endTime: double, the end-time of the added data
+
+        :return: N/A
         """
         # Iterate through neurons that need to be filtered, as noted in this class's self.neuronToFilter numpy.arrray.
         # That is we iterate over all the neurons that need to be filtered and look to see if they are inlcuded in the
@@ -746,9 +872,9 @@ class condInenFuncFilterManager:
             filt  = self.neuronToFilter[ind, 2] # Integer, filter index (references self.filters, self.filtersDt, self.filtersBackUpTime, etc.)
             dStps = self.numbStepsToStore[ind]  # Integer, the number of time-steps we keep in memroy because of the delays with some filters.
             # ONLY the neurons are going to be updated if they have input data to parse through
-            if nGrp in listOfNeuronGroups: #Check if the input data has the neuron group represented or not
-                spkObjInd = listOfNeuronGroups.index(nGrp) #Indicates which of the brian2.SpikeMonitor objects to grab from 'listOfSpikeObjs' list
-                spkObj = listOfSpikeObjs[spkObjInd] #Grab the correct brian2.SpikeMonitor object
+            if nGrp in listOfNeuronGroups: # Check if the input data has the neuron group represented or not
+                spkObjInd = listOfNeuronGroups.index(nGrp) # Indicates which of the brian2.SpikeMonitor objects to grab from 'listOfSpikeObjs' list
+                spkObj = listOfSpikeObjs[spkObjInd] # Grab the correct brian2.SpikeMonitor object
                 # 'spkObj' is a brian2.SpikeMonitor object. It may have spike times that preccede 'startTime' (here
                 # given as input. As such we need to ONLY look at consider those times >=startTime, and <=endTime, and
                 # lastly that we are looking at the neuron in question we care about.
@@ -777,17 +903,16 @@ class condInenFuncFilterManager:
         """
         DESCRIPTION
         A method, called generally when given new spike data that has been filtered, to append self.filteredArrays
-        and self.filteredArraysTimeValues. Here NO DATA is deleted, only data is added. Data should only be deleted
-        once it is used to calculate CIFs or update CIFs. This step comes prior to those steps.
+        and self.filteredArraysTimeValues.
 
-        IMPORTANT to note, data is deleted if there is an overlap in time-arrays
+        IMPORTANT to note, data is deleted if there is an overlap in time-arrays.
 
         IMPORTANT to note, if there is a gap in time between the stored memory and the given data, that time is filled
         in with blank data to make there is no gap in time.
 
         :param ind: integer, the index of the current neuron / filter combination stored in self.neuronToFilter where
-        :param filteredArray: numpy.array([])
-        :param filteredArrayTimes: numpy.array([])
+        :param filteredArray: numpy.array([]), the filtered data
+        :param filteredArrayTimes: numpy.array([]), associated time of filteredArray
         :return: N/A
         """
         if filteredArray.size>0: # Check if the input data is valid
@@ -840,10 +965,10 @@ class condInenFuncFilterManager:
     def garbabgeCollectFilteredArrays(self):
         '''
         DESCRIPTION
-        If this method is called, it is assumed that all the CIF prediction and updating for some epoch has concluded.
-        This method will go through and shrink the numpy.arrays in self.filteredArrays and in
+        If this method is called, it is assumed that all the CIF prediction and updating for some epoch has concluded or
+        is not needed. This method will go through and shrink the numpy.arrays in self.filteredArrays and in
         self.filteredArraysTimeValues to the smallest sizes possible as denoted by the values stored in
-        self.numbStepsToStore
+        self.numbStepsToStore.
 
         :return: N/A
         '''
@@ -861,9 +986,9 @@ class condInenFuncFilterManager:
     def clearFilteredArrays(self, ind, startTime=0., stopTime=-1):
         """
         DESCRIPTION
-        A method to clear diltered arrays, for a particular neuron / filter indicated by the postition in
+        A method to clear some self.filtered arrays, for a particular neuron / filter indicated by the postition in
         self.neuronToFilter by the input 'ind', over some time-range given by starTime - infinity, or startTime to
-        stopTime
+        stopTime.
 
         :param ind:
         :param startTime:
@@ -892,9 +1017,9 @@ class condInenFuncFilterManager:
         Here data is only deleted, if the new formerly stored spikes overlap with the new range of time that the new
         set of spikes given in 'spikeTimes'. Otherwise, the spikes are simply appended.
 
-        :param ind:
-        :param spikeTimes:
-        :return:
+        :param ind: the index of the neuron-group, neuron, neuron-filter combination as stored in self.neuronToFilter
+        :param spikeTimes: numpy.array([]), the set of spike times to append
+        :return: N/A
         """
         if spikeTimes.size>0: # Check input
             if self.spikeTrainMemory[ind].size>0:
@@ -916,14 +1041,15 @@ class condInenFuncFilterManager:
     def garbageCollectSpikeTrainMemory(self, endTime):
         '''
         DESCRIPTION
-        If this method is called, it is assumed that all the CIF prediction and updating for some epoch has concluded.
-        This method will go through and shrink the numpy.arrays in self.spikeTrainMemory to the smallest sizes possible
-        as denoted by ... the value stored in self.filtersBackUpTime
+        If this method is called, it is assumed that all the CIF prediction and updating for some epoch has concluded or
+        is no longer needed. This method will go through and shrink the numpy.arrays in self.spikeTrainMemory to the
+        smallest sizes possible as denoted by the value stored in self.filtersBackUpTime, that is each filter
+        (self.filters) has a filter-backup time (self.filterBackupTime) that denotes this amount of time.
 
         :return: N/A
         '''
-        for ind, bckTime in enumerate(self.filtersBackUpTime):
-            self.spikeTrainMemory[ind] = self.spikeTrainMemory[ind][ (self.spikeTrainMemory[ind]<endTime) & (self.spikeTrainMemory[ind]>endTime-bckTime) ]
+        for ind, filtInd in enumerate(self.neuronToFilter[:, 2]):
+            self.spikeTrainMemory[ind] = self.spikeTrainMemory[ind][self.spikeTrainMemory[ind] >= endTime-self.filtersBackUpTime[filtInd]]
 
 
     def clearSpikeTrainMemory(self, ind, startTime=0., stopTime=-1):
@@ -937,7 +1063,8 @@ class condInenFuncFilterManager:
         :param startTime: the time beginning from which we want to delete stored spikes
         :param stopTime:  the time to which we want to delete spikes, a value < 0 indicates to delete all spikes greater
                           in time then 'startTime'
-        :return:
+
+        :return: N/A
         """
         if stopTime < startTime:
             timeCorrectedInds = numpy.where((self.spikeTrainMemory[ind] >= startTime))
@@ -964,7 +1091,7 @@ class condItenFuncManager:
                      The answer is going to be I do not include the end-time, that is if I start simulation at t=0, and
                      then from for one dt=.001ms, then I will only have data from 1-time-step which is annotated as
                      time-step 0,
-                     ... this might be fixed, need to run and test to be sure
+                     ... this might be fixed,
     """
 
 
@@ -1099,7 +1226,8 @@ class condItenFuncManager:
                                     # 'otherNeuronGroup' is going to be filtered, by only "adding" the combination, the
                                     # output below is the index we care about
                                     filterPosition = self.filterManager.addNeuronAndFilter(otherNeuronGroup, otherNeuronId, outVals0[1], outVals0[2], tDelay)
-                                    # Ammend the 'cifObj' so we know which filter to point to.
+                                    # Ammend the 'cifObj' so we know which filter to point to and the number of time-steps
+                                    # that are needed to be delayed
                                     cifObj.addFunction(dummyFunctionType, filterPosition, outVals0[2])
             # If the 'newFilter' is one of looking at self produced spikes
             elif newFilter[0]=='gausLinSelf':
@@ -1284,7 +1412,7 @@ class condItenFuncManager:
             times = numpy.reshape(numpy.transpose(times),3*self.filterManager.spikeTrainMemory[i].size)
             vals = numpy.vstack((numpy.zeros(self.filterManager.spikeTrainMemory[i].size),numpy.ones(self.filterManager.spikeTrainMemory[i].size),numpy.zeros(self.filterManager.spikeTrainMemory[i].size)))
             vals = numpy.reshape(numpy.transpose(vals),3*self.filterManager.spikeTrainMemory[i].size)
-            plt.plot(times,vals)
+            plt.plot(times, vals)
         plt.show()
 
 
@@ -1292,7 +1420,7 @@ class condItenFuncManager:
         print("\n")
         print("#######################################################################################################")
         print("#                                                                                                     #")
-        print("#                                    Examining Constructred Data                                      #")
+        print("#                                    Examining Constructed Data                                       #")
         print("#                                                                                                     #")
         print("#######################################################################################################")
         print(" ")
@@ -1304,27 +1432,23 @@ class condItenFuncManager:
             outStr = "CIF Input Data\nNeuron=" + str(cifObj.neuronId) + ", Neuron-Grp=" + str(cifObj.neuronGroup)
             plt.title(outStr)
             for columnInd in range(cifObj.dataMatrix.shape[1]):
-                #Note the data stored in the 'dataMatrix' numpy.array is such that the earlest time is given first, and
-                #the lastest time is last, we need to flip the data so it shows up correctly
-                plt.plot(cifObj.spikeTimeArray[-cifObj.dataMatrix.shape[0]:], numpy.flipud(cifObj.dataMatrix[:,columnInd]))
+                # Note the data stored in the 'dataMatrix' numpy.array is such that the earliest time is given first, and
+                # the lastest time is last, we need to flip the data so it shows up correctly
+                plt.plot(cifObj.spikeTimeArray[-cifObj.dataMatrix.shape[0]:], cifObj.dataMatrix[:, columnInd], label=str(columnInd))
+            plt.legend()
             plt.plot(cifObj.spikeTimeArray[-cifObj.dataMatrix.shape[0]:], cifObj.spikeArray, '--', linewidth=3.0)
         plt.show()
 
 
-
-
-
-
-
 ########################################################################################################################
-# Internal Unit Testing
+#                                              Internal Unit Testing
 ########################################################################################################################
 
 
 if __name__ == "__main__":
 
 
-    #################Testing the filter manager bits
+    ################# Testing the filter manager bits ##################################################################
     '''
     # Create a new conditional-intentisty-function manager object
     myFilterMan = condItenFuncManager(.001)
@@ -1349,14 +1473,14 @@ if __name__ == "__main__":
     '''
 
 
-    #################Testing the addition, and filtering of data
+    ################# Testing the addition, and filtering of data ######################################################
     # Create a new conditional-intensity-function manager object
-    myFilterMan = condItenFuncManager(.001)
+    myFilterMan = condItenFuncManager(.001) # We have to give it the dt we are using
     # Create neurons and neurons groups
     neuronGroup0Ids = numpy.array([0])
     neuronGroup1Ids = numpy.array([0,1])
-    #synapses0       = numpy.array([[0,1,0,1],[0,1,1,1]])
-    synapses0       = numpy.array([[0,1,1,1]])
+    synapses0       = numpy.array([[0,1,0,1], [0,1,1,1]])
+    #synapses0       = numpy.array([[0,1,1,1]])
     gausFiltDelays  = numpy.array([0., .005, .01, .015, .02])
     # Create new conditional intensity functison for neurons
     inputFunctionType = ['gausLinSyn', 1, neuronGroup1Ids, synapses0, 1., .0, .002, .1, .001, gausFiltDelays] #['gausLinSyn', neuronGroup, neuronIds, synStruc, a, b, c, timeLength, dt, timeDelays]
@@ -1366,26 +1490,26 @@ if __name__ == "__main__":
     myFilterMan.addNewFilter(inputFunctionType)
     # Check the filters
     myFilterMan.diagnosticCheckNeuronAndFilterCombs()
-    #myFilterMan.diagnosticCheckExamineStoredFilters()
+    myFilterMan.diagnosticCheckExamineStoredFilters()
     #Now I create and add some data
     class someSpikeObj:
         def __init__(self, inds, times):
             self.t = times
             self.i = inds
-    neuSpks = numpy.array([0,0,0,0,0,0,0])
+    neuSpks = numpy.array([0, 0, 0, 0, 0, 0, 0])
     neuTmes = numpy.array([.001, .0081, .011, .025, .050, .0493, .08])
     neuTmes = neuTmes + .0001
-    grp1SpikeMon = someSpikeObj(neuSpks,neuTmes)
+    grp1SpikeMon = someSpikeObj(neuSpks, neuTmes)
     neuSpks = numpy.array([0, 1, 0, 1])
     neuTmes = numpy.array([.011, .025, .06, .075])
     neuTmes = neuTmes + .0001
-    grp2SpikeMon = someSpikeObj(neuSpks,neuTmes)
+    grp2SpikeMon = someSpikeObj(neuSpks, neuTmes)
     # Initialize the filter class
     myFilterMan.filterManager.initFilterRecorders()
     # Now actually give the data to be presented
-    myFilterMan.parseNewSpikeTrainData([grp1SpikeMon,grp2SpikeMon], [0,1], startTime=0., endTime=.125)
+    myFilterMan.parseNewSpikeTrainData([grp1SpikeMon, grp2SpikeMon], [0, 1], startTime=0., endTime=.125)
     # Now some debugging
-    #myFilterMan.diagnosticCheckExamineFilteredSpikeData()
+    myFilterMan.diagnosticCheckExamineFilteredSpikeData()
     # Now add some new data and see what happends
     neuSpks = numpy.array([0, 0, 0, 0, 0, 0, 0])
     neuTmes = numpy.array([.001, .008, .011, .025, .050, .053, .08])
@@ -1402,7 +1526,7 @@ if __name__ == "__main__":
     # Now we want to create the training data!
     myFilterMan.prepareParsedData()
     # Now look at all the training data in one plot
-    #myFilterMan.diagnosticCheckExamineConstrutedDataSet()
+    myFilterMan.diagnosticCheckExamineConstrutedDataSet()
     # Now we want to try and train using gradient descent!
     def testSgdAndPrections(myFilterMan, trainIterations, cifObjNumb):
         # Grab the cif-object
@@ -1417,11 +1541,10 @@ if __name__ == "__main__":
         for i in range(trainIterations):
             cifObj.updateCifCoeffsSGD(.01)
             probs = cifObj.generateSpikeProbabilities()
-            print(probs.shape)
             plt.plot(cifObj.spikeTimeArray[-probs.size:], probs)
         plt.show()
     # Run the test method we just created
-    testSgdAndPrections(myFilterMan, 5, 1)
+    testSgdAndPrections(myFilterMan, 500, 1)
 
 
 
