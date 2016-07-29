@@ -18,8 +18,8 @@ extern std::vector< rk_state* > _mersenne_twister_states;
 
 //////////////// clocks ///////////////////
 extern Clock defaultclock;
-extern Clock statemonitor_1_clock;
 extern Clock statemonitor_clock;
+extern Clock statemonitor_1_clock;
 
 //////////////// networks /////////////////
 extern Network magicnetwork;

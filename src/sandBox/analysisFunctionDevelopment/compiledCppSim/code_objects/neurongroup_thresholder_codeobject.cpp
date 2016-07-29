@@ -1043,18 +1043,18 @@ void _run_neurongroup_thresholder_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	const int _numlastspike = 1;
-const int _num_spikespace = 2;
-const int _numt = 1;
-const int _numnot_refractory = 1;
+	const int _num_spikespace = 2;
+const int _numlastspike = 1;
 const int _numv = 1;
+const int _numnot_refractory = 1;
+const int _numt = 1;
 	///// POINTERS ////////////
  	
- double* __restrict  _ptr_array_neurongroup_lastspike = _array_neurongroup_lastspike;
  int32_t* __restrict  _ptr_array_neurongroup__spikespace = _array_neurongroup__spikespace;
- double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
- bool* __restrict  _ptr_array_neurongroup_not_refractory = _array_neurongroup_not_refractory;
+ double* __restrict  _ptr_array_neurongroup_lastspike = _array_neurongroup_lastspike;
  double* __restrict  _ptr_array_neurongroup_v = _array_neurongroup_v;
+ bool* __restrict  _ptr_array_neurongroup_not_refractory = _array_neurongroup_not_refractory;
+ double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
 
 
 
@@ -1073,10 +1073,10 @@ const int _numv = 1;
         const double v = _ptr_array_neurongroup_v[_idx];
         const bool not_refractory = _ptr_array_neurongroup_not_refractory[_idx];
         bool _cond;
-        if(not_refractory)
-            _cond = (v > 30.0) && true;
-        else 
+        if(!not_refractory)
             _cond = (v > 30.0) && false;
+        else 
+            _cond = (v > 30.0) && true;
 
         if(_cond) {
             _ptr_array_neurongroup__spikespace[_count++] = _idx;

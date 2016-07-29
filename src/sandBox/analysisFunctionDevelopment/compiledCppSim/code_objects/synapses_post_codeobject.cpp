@@ -1046,29 +1046,29 @@ void _run_synapses_post_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
+	double* const _array_synapses_lastupdate = _dynamic_array_synapses_lastupdate.empty()? 0 : &_dynamic_array_synapses_lastupdate[0];
+const int _numlastupdate = _dynamic_array_synapses_lastupdate.size();
+double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
 const int _numR_hat = _dynamic_array_synapses_R_hat.size();
 int32_t* const _array_synapses__synaptic_pre = _dynamic_array_synapses__synaptic_pre.empty()? 0 : &_dynamic_array_synapses__synaptic_pre[0];
 const int _num_synaptic_pre = _dynamic_array_synapses__synaptic_pre.size();
-double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
-const int _numw = _dynamic_array_synapses_w.size();
 const int _num_K_synapses_R_hat = _dynamic_array_synapses_R_hat.size();
-const int _numt = 1;
-double* const _array_synapses_apost = _dynamic_array_synapses_apost.empty()? 0 : &_dynamic_array_synapses_apost[0];
-const int _numapost = _dynamic_array_synapses_apost.size();
-double* const _array_synapses_lastupdate = _dynamic_array_synapses_lastupdate.empty()? 0 : &_dynamic_array_synapses_lastupdate[0];
-const int _numlastupdate = _dynamic_array_synapses_lastupdate.size();
 double* const _array_synapses_apre = _dynamic_array_synapses_apre.empty()? 0 : &_dynamic_array_synapses_apre[0];
 const int _numapre = _dynamic_array_synapses_apre.size();
+double* const _array_synapses_apost = _dynamic_array_synapses_apost.empty()? 0 : &_dynamic_array_synapses_apost[0];
+const int _numapost = _dynamic_array_synapses_apost.size();
+double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
+const int _numw = _dynamic_array_synapses_w.size();
+const int _numt = 1;
 	///// POINTERS ////////////
  	
+ double* __restrict  _ptr_array_synapses_lastupdate = _array_synapses_lastupdate;
  double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
  int32_t* __restrict  _ptr_array_synapses__synaptic_pre = _array_synapses__synaptic_pre;
+ double* __restrict  _ptr_array_synapses_apre = _array_synapses_apre;
+ double* __restrict  _ptr_array_synapses_apost = _array_synapses_apost;
  double* __restrict  _ptr_array_synapses_w = _array_synapses_w;
  double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
- double* __restrict  _ptr_array_synapses_apost = _array_synapses_apost;
- double* __restrict  _ptr_array_synapses_lastupdate = _array_synapses_lastupdate;
- double* __restrict  _ptr_array_synapses_apre = _array_synapses_apre;
 
 
 
@@ -1100,12 +1100,12 @@ const int _numapre = _dynamic_array_synapses_apre.size();
 		const int _vectorisation_idx = _idx;
   		
   double R_hat = _ptr_array_synapses_R_hat[_idx];
-  const double t = _ptr_array_defaultclock_t[0];
+  const double _K_synapses_R_hat = _ptr_array_synapses_R_hat[_idx];
   double apre = _ptr_array_synapses_apre[_idx];
-  double w = _ptr_array_synapses_w[_idx];
   double apost = _ptr_array_synapses_apost[_idx];
   double lastupdate = _ptr_array_synapses_lastupdate[_idx];
-  const double _K_synapses_R_hat = _ptr_array_synapses_R_hat[_idx];
+  double w = _ptr_array_synapses_w[_idx];
+  const double t = _ptr_array_defaultclock_t[0];
   apre *= exp(_lio_1 * (_lio_2 + lastupdate));
   apost *= exp(_lio_3 * (_lio_2 + lastupdate));
   apost += (- 6.6e-05);
@@ -1113,11 +1113,11 @@ const int _numapre = _dynamic_array_synapses_apre.size();
   w += 1 * (K * apre);
   R_hat += 1;
   lastupdate = t;
+  _ptr_array_synapses_w[_idx] = w;
   _ptr_array_synapses_R_hat[_idx] = R_hat;
   _ptr_array_synapses_apre[_idx] = apre;
-  _ptr_array_synapses_lastupdate[_idx] = lastupdate;
-  _ptr_array_synapses_w[_idx] = w;
   _ptr_array_synapses_apost[_idx] = apost;
+  _ptr_array_synapses_lastupdate[_idx] = lastupdate;
 
 	}
 

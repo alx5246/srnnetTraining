@@ -1047,13 +1047,13 @@ void _run_poissongroup_thresholder_codeobject()
 
 	///// CONSTANTS ///////////
 	const int _num_spikespace = 101;
-const int _numdt = 1;
 const int _numrates = 100;
+const int _numdt = 1;
 	///// POINTERS ////////////
  	
  int32_t* __restrict  _ptr_array_poissongroup__spikespace = _array_poissongroup__spikespace;
- double*   _ptr_array_defaultclock_dt = _array_defaultclock_dt;
  double* __restrict  _ptr_array_poissongroup_rates = _array_poissongroup_rates;
+ double*   _ptr_array_defaultclock_dt = _array_defaultclock_dt;
 
 
 

@@ -1044,18 +1044,18 @@ void _run_synapses_stateupdater_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
-const int _numR_hat = _dynamic_array_synapses_R_hat.size();
-const int _numdt = 1;
-double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
+	double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
 const int _numw = _dynamic_array_synapses_w.size();
+const int _numdt = 1;
 const int _numN = 1;
+double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
+const int _numR_hat = _dynamic_array_synapses_R_hat.size();
 	///// POINTERS ////////////
  	
- double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
- double*   _ptr_array_defaultclock_dt = _array_defaultclock_dt;
  double* __restrict  _ptr_array_synapses_w = _array_synapses_w;
+ double*   _ptr_array_defaultclock_dt = _array_defaultclock_dt;
  int32_t*   _ptr_array_synapses_N = _array_synapses_N;
+ double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
 
 
 	//// MAIN CODE ////////////
@@ -1064,7 +1064,7 @@ const int _numN = 1;
  	
  const double dt = _ptr_array_defaultclock_dt[0];
  const double _lio_1 = dt / 1.0;
- const double _lio_2 = (0.4 * dt) / ((5 * 50) * 1.0);
+ const double _lio_2 = (0.0 * dt) / ((5 * 50) * 1.0);
  const double _lio_3 = 1.0 / 6.6425;
 
 

@@ -1043,27 +1043,27 @@ void _run_spikemonitor_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	const int _num_source_idx = 100;
+	const int _numcount = 100;
 const int _num_clock_t = 1;
 const int _num_source_i = 100;
-double* const _array_spikemonitor_t = _dynamic_array_spikemonitor_t.empty()? 0 : &_dynamic_array_spikemonitor_t[0];
-const int _numt = _dynamic_array_spikemonitor_t.size();
-const int _numcount = 100;
-const int _numN = 1;
+const int _num_source_idx = 100;
 const int _num_spikespace = 101;
 int32_t* const _array_spikemonitor_i = _dynamic_array_spikemonitor_i.empty()? 0 : &_dynamic_array_spikemonitor_i[0];
 const int _numi = _dynamic_array_spikemonitor_i.size();
 const int _num_source_t = 1;
+double* const _array_spikemonitor_t = _dynamic_array_spikemonitor_t.empty()? 0 : &_dynamic_array_spikemonitor_t[0];
+const int _numt = _dynamic_array_spikemonitor_t.size();
+const int _numN = 1;
 	///// POINTERS ////////////
  	
- int32_t* __restrict  _ptr_array_spikemonitor__source_idx = _array_spikemonitor__source_idx;
+ int32_t* __restrict  _ptr_array_spikemonitor_count = _array_spikemonitor_count;
  double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
  int32_t* __restrict  _ptr_array_poissongroup_i = _array_poissongroup_i;
- double* __restrict  _ptr_array_spikemonitor_t = _array_spikemonitor_t;
- int32_t* __restrict  _ptr_array_spikemonitor_count = _array_spikemonitor_count;
- int32_t*   _ptr_array_spikemonitor_N = _array_spikemonitor_N;
+ int32_t* __restrict  _ptr_array_spikemonitor__source_idx = _array_spikemonitor__source_idx;
  int32_t* __restrict  _ptr_array_poissongroup__spikespace = _array_poissongroup__spikespace;
  int32_t* __restrict  _ptr_array_spikemonitor_i = _array_spikemonitor_i;
+ double* __restrict  _ptr_array_spikemonitor_t = _array_spikemonitor_t;
+ int32_t*   _ptr_array_spikemonitor_N = _array_spikemonitor_N;
 
 
 	//// MAIN CODE ////////////
@@ -1100,10 +1100,10 @@ const int _num_source_t = 1;
                 const int _idx = _ptr_array_poissongroup__spikespace[_j];
                 const int _vectorisation_idx = _idx;
                                 
-                const double _source_t = _ptr_array_defaultclock_t[0];
                 const int32_t _source_i = _ptr_array_poissongroup_i[_idx];
-                const double _to_record_t = _source_t;
+                const double _source_t = _ptr_array_defaultclock_t[0];
                 const int32_t _to_record_i = _source_i;
+                const double _to_record_t = _source_t;
 
                 _dynamic_array_spikemonitor_t.push_back(_to_record_t);
                 _dynamic_array_spikemonitor_i.push_back(_to_record_i);
@@ -1121,26 +1121,26 @@ const int _num_source_t = 1;
 void _debugmsg_spikemonitor_codeobject()
 {
 	using namespace brian;
-    const int _num_source_idx = 100;
+    const int _numcount = 100;
 const int _num_clock_t = 1;
 const int _num_source_i = 100;
-double* const _array_spikemonitor_t = _dynamic_array_spikemonitor_t.empty()? 0 : &_dynamic_array_spikemonitor_t[0];
-const int _numt = _dynamic_array_spikemonitor_t.size();
-const int _numcount = 100;
-const int _numN = 1;
+const int _num_source_idx = 100;
 const int _num_spikespace = 101;
 int32_t* const _array_spikemonitor_i = _dynamic_array_spikemonitor_i.empty()? 0 : &_dynamic_array_spikemonitor_i[0];
 const int _numi = _dynamic_array_spikemonitor_i.size();
 const int _num_source_t = 1;
+double* const _array_spikemonitor_t = _dynamic_array_spikemonitor_t.empty()? 0 : &_dynamic_array_spikemonitor_t[0];
+const int _numt = _dynamic_array_spikemonitor_t.size();
+const int _numN = 1;
         
-    int32_t* __restrict  _ptr_array_spikemonitor__source_idx = _array_spikemonitor__source_idx;
+    int32_t* __restrict  _ptr_array_spikemonitor_count = _array_spikemonitor_count;
     double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
     int32_t* __restrict  _ptr_array_poissongroup_i = _array_poissongroup_i;
-    double* __restrict  _ptr_array_spikemonitor_t = _array_spikemonitor_t;
-    int32_t* __restrict  _ptr_array_spikemonitor_count = _array_spikemonitor_count;
-    int32_t*   _ptr_array_spikemonitor_N = _array_spikemonitor_N;
+    int32_t* __restrict  _ptr_array_spikemonitor__source_idx = _array_spikemonitor__source_idx;
     int32_t* __restrict  _ptr_array_poissongroup__spikespace = _array_poissongroup__spikespace;
     int32_t* __restrict  _ptr_array_spikemonitor_i = _array_spikemonitor_i;
+    double* __restrict  _ptr_array_spikemonitor_t = _array_spikemonitor_t;
+    int32_t*   _ptr_array_spikemonitor_N = _array_spikemonitor_N;
 
 	std::cout << "Number of spikes: " << _ptr_array_spikemonitor_N[0] << endl;
 }

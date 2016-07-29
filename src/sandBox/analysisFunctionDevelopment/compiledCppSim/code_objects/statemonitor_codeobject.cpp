@@ -1046,22 +1046,22 @@ void _run_statemonitor_codeobject()
 	///// CONSTANTS ///////////
 	double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
 const int _num_source_w = _dynamic_array_synapses_w.size();
-double* const _array_statemonitor_t = _dynamic_array_statemonitor_t.empty()? 0 : &_dynamic_array_statemonitor_t[0];
-const int _numt = _dynamic_array_statemonitor_t.size();
-double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
-const int _num__source_K_synapses_R_hat = _dynamic_array_synapses_R_hat.size();
-const int _numN = 1;
-const int _num_source_R_hat = _dynamic_array_synapses_R_hat.size();
 const int _num_indices = 100;
 const int _num_clock_t = 1;
+double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
+const int _num_source_R_hat = _dynamic_array_synapses_R_hat.size();
+const int _num__source_K_synapses_R_hat = _dynamic_array_synapses_R_hat.size();
+double* const _array_statemonitor_t = _dynamic_array_statemonitor_t.empty()? 0 : &_dynamic_array_statemonitor_t[0];
+const int _numt = _dynamic_array_statemonitor_t.size();
+const int _numN = 1;
 	///// POINTERS ////////////
  	
  double* __restrict  _ptr_array_synapses_w = _array_synapses_w;
- double* __restrict  _ptr_array_statemonitor_t = _array_statemonitor_t;
- double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
- int32_t*   _ptr_array_statemonitor_N = _array_statemonitor_N;
  int32_t* __restrict  _ptr_array_statemonitor__indices = _array_statemonitor__indices;
  double*   _ptr_array_statemonitor_clock_t = _array_statemonitor_clock_t;
+ double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
+ double* __restrict  _ptr_array_statemonitor_t = _array_statemonitor_t;
+ int32_t*   _ptr_array_statemonitor_N = _array_statemonitor_N;
 
 
 
@@ -1087,8 +1087,8 @@ const int _num_clock_t = 1;
         const int _idx = _ptr_array_statemonitor__indices[_i];
         const int _vectorisation_idx = _idx;
                                         
-                    const double __source_K_synapses_R_hat = _ptr_array_synapses_R_hat[_idx];
                     const double _source_w = _ptr_array_synapses_w[_idx];
+                    const double __source_K_synapses_R_hat = _ptr_array_synapses_R_hat[_idx];
                     const double _source_R_hat = _ptr_array_synapses_R_hat[_idx];
                     const double _to_record_w = _source_w;
                     const double _to_record_R_hat = _source_R_hat;

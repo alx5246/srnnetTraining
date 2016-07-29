@@ -1043,24 +1043,24 @@ void _run_neurongroup_stateupdater_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	const int _numdt = 1;
+	const int _numt = 1;
 const int _numI = 1;
-const int _numt = 1;
-const int _numlastspike = 1;
-const int _numL = 1;
-const int _numv = 1;
 const int _numnot_refractory = 1;
+const int _numL = 1;
+const int _numdt = 1;
+const int _numv = 1;
 const int _numu = 1;
+const int _numlastspike = 1;
 	///// POINTERS ////////////
  	
- double*   _ptr_array_defaultclock_dt = _array_defaultclock_dt;
- double* __restrict  _ptr_array_neurongroup_I = _array_neurongroup_I;
  double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
- double* __restrict  _ptr_array_neurongroup_lastspike = _array_neurongroup_lastspike;
- double* __restrict  _ptr_array_neurongroup_L = _array_neurongroup_L;
- double* __restrict  _ptr_array_neurongroup_v = _array_neurongroup_v;
+ double* __restrict  _ptr_array_neurongroup_I = _array_neurongroup_I;
  bool* __restrict  _ptr_array_neurongroup_not_refractory = _array_neurongroup_not_refractory;
+ double* __restrict  _ptr_array_neurongroup_L = _array_neurongroup_L;
+ double*   _ptr_array_defaultclock_dt = _array_defaultclock_dt;
+ double* __restrict  _ptr_array_neurongroup_v = _array_neurongroup_v;
  double* __restrict  _ptr_array_neurongroup_u = _array_neurongroup_u;
+ double* __restrict  _ptr_array_neurongroup_lastspike = _array_neurongroup_lastspike;
 
 
 	//// MAIN CODE ////////////
@@ -1069,8 +1069,8 @@ const int _numu = 1;
  	
  const double dt = _ptr_array_defaultclock_dt[0];
  const double _lio_1 = dt / 0.25;
- const double _lio_2 = (0.02 * dt) / 1.0;
- const double _lio_3 = dt / 1.0;
+ const double _lio_2 = dt / 1.0;
+ const double _lio_3 = (0.02 * dt) / 1.0;
 
 
 	const int _N = 1;
@@ -1080,29 +1080,29 @@ const int _numu = 1;
 	    // vector code
 		const int _vectorisation_idx = _idx;
                 
-        double u = _ptr_array_neurongroup_u[_idx];
-        const double I = _ptr_array_neurongroup_I[_idx];
         const double t = _ptr_array_defaultclock_t[0];
+        const double I = _ptr_array_neurongroup_I[_idx];
         bool not_refractory = _ptr_array_neurongroup_not_refractory[_idx];
-        const double lastspike = _ptr_array_neurongroup_lastspike[_idx];
         double L = _ptr_array_neurongroup_L[_idx];
+        const double lastspike = _ptr_array_neurongroup_lastspike[_idx];
         double v = _ptr_array_neurongroup_v[_idx];
+        double u = _ptr_array_neurongroup_u[_idx];
         not_refractory = (t - lastspike) > 0.002;
         const double _L = (_lio_1 * (- L)) + L;
-        const double _u = (_lio_2 * ((0.2 * v) - u)) + u;
         double _v;
-        if(not_refractory)
-            _v = (_lio_3 * ((140.0 + (((I + (5.0 * L)) + (5.0 * v)) + (0.04 * (_brian_pow(v, 2.0))))) - u)) + v;
-        else 
+        if(!not_refractory)
             _v = v;
+        else 
+            _v = (_lio_2 * ((140.0 + (((I + (5.0 * L)) + (5.0 * v)) + (0.04 * (_brian_pow(v, 2.0))))) - u)) + v;
+        const double _u = (_lio_3 * ((0.2 * v) - u)) + u;
         L = _L;
-        u = _u;
         if(not_refractory)
             v = _v;
-        _ptr_array_neurongroup_u[_idx] = u;
-        _ptr_array_neurongroup_L[_idx] = L;
+        u = _u;
         _ptr_array_neurongroup_v[_idx] = v;
         _ptr_array_neurongroup_not_refractory[_idx] = not_refractory;
+        _ptr_array_neurongroup_u[_idx] = u;
+        _ptr_array_neurongroup_L[_idx] = L;
 
 	}
 

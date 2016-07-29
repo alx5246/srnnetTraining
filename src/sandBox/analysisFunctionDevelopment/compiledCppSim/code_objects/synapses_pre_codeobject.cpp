@@ -1046,33 +1046,33 @@ void _run_synapses_pre_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	int32_t* const _array_synapses__synaptic_pre = _dynamic_array_synapses__synaptic_pre.empty()? 0 : &_dynamic_array_synapses__synaptic_pre[0];
+	double* const _array_synapses_lastupdate = _dynamic_array_synapses_lastupdate.empty()? 0 : &_dynamic_array_synapses_lastupdate[0];
+const int _numlastupdate = _dynamic_array_synapses_lastupdate.size();
+int32_t* const _array_synapses__synaptic_pre = _dynamic_array_synapses__synaptic_pre.empty()? 0 : &_dynamic_array_synapses__synaptic_pre[0];
 const int _num_synaptic_pre = _dynamic_array_synapses__synaptic_pre.size();
-double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
-const int _numw = _dynamic_array_synapses_w.size();
 double* const _array_synapses_R_hat = _dynamic_array_synapses_R_hat.empty()? 0 : &_dynamic_array_synapses_R_hat[0];
 const int _num_K_synapses_R_hat = _dynamic_array_synapses_R_hat.size();
-const int _numt = 1;
-const int _numL = 1;
-double* const _array_synapses_apost = _dynamic_array_synapses_apost.empty()? 0 : &_dynamic_array_synapses_apost[0];
-const int _numapost = _dynamic_array_synapses_apost.size();
-double* const _array_synapses_lastupdate = _dynamic_array_synapses_lastupdate.empty()? 0 : &_dynamic_array_synapses_lastupdate[0];
-const int _numlastupdate = _dynamic_array_synapses_lastupdate.size();
 int32_t* const _array_synapses__synaptic_post = _dynamic_array_synapses__synaptic_post.empty()? 0 : &_dynamic_array_synapses__synaptic_post[0];
 const int _num_postsynaptic_idx = _dynamic_array_synapses__synaptic_post.size();
 double* const _array_synapses_apre = _dynamic_array_synapses_apre.empty()? 0 : &_dynamic_array_synapses_apre[0];
 const int _numapre = _dynamic_array_synapses_apre.size();
+double* const _array_synapses_apost = _dynamic_array_synapses_apost.empty()? 0 : &_dynamic_array_synapses_apost[0];
+const int _numapost = _dynamic_array_synapses_apost.size();
+const int _numL = 1;
+double* const _array_synapses_w = _dynamic_array_synapses_w.empty()? 0 : &_dynamic_array_synapses_w[0];
+const int _numw = _dynamic_array_synapses_w.size();
+const int _numt = 1;
 	///// POINTERS ////////////
  	
- int32_t* __restrict  _ptr_array_synapses__synaptic_pre = _array_synapses__synaptic_pre;
- double* __restrict  _ptr_array_synapses_w = _array_synapses_w;
- double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
- double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
- double* __restrict  _ptr_array_neurongroup_L = _array_neurongroup_L;
- double* __restrict  _ptr_array_synapses_apost = _array_synapses_apost;
  double* __restrict  _ptr_array_synapses_lastupdate = _array_synapses_lastupdate;
+ int32_t* __restrict  _ptr_array_synapses__synaptic_pre = _array_synapses__synaptic_pre;
+ double* __restrict  _ptr_array_synapses_R_hat = _array_synapses_R_hat;
  int32_t* __restrict  _ptr_array_synapses__synaptic_post = _array_synapses__synaptic_post;
  double* __restrict  _ptr_array_synapses_apre = _array_synapses_apre;
+ double* __restrict  _ptr_array_synapses_apost = _array_synapses_apost;
+ double* __restrict  _ptr_array_neurongroup_L = _array_neurongroup_L;
+ double* __restrict  _ptr_array_synapses_w = _array_synapses_w;
+ double*   _ptr_array_defaultclock_t = _array_defaultclock_t;
 
 
 
@@ -1105,13 +1105,13 @@ const int _numapre = _dynamic_array_synapses_apre.size();
 			const int _vectorisation_idx = _idx;
    			
    const int32_t _postsynaptic_idx = _ptr_array_synapses__synaptic_post[_idx];
-   const double t = _ptr_array_defaultclock_t[0];
+   const double _K_synapses_R_hat = _ptr_array_synapses_R_hat[_idx];
    double apre = _ptr_array_synapses_apre[_idx];
-   double w = _ptr_array_synapses_w[_idx];
-   double L = _ptr_array_neurongroup_L[_postsynaptic_idx];
    double apost = _ptr_array_synapses_apost[_idx];
    double lastupdate = _ptr_array_synapses_lastupdate[_idx];
-   const double _K_synapses_R_hat = _ptr_array_synapses_R_hat[_idx];
+   double L = _ptr_array_neurongroup_L[_postsynaptic_idx];
+   double w = _ptr_array_synapses_w[_idx];
+   const double t = _ptr_array_defaultclock_t[0];
    apre *= exp(_lio_1 * (_lio_2 + lastupdate));
    apost *= exp(_lio_3 * (_lio_2 + lastupdate));
    L += w;
@@ -1119,11 +1119,11 @@ const int _numapre = _dynamic_array_synapses_apre.size();
    const double K = (_lio_4 * _K_synapses_R_hat) / _brian_abs(1.0 - (_lio_5 * _K_synapses_R_hat));
    w += 1 * (K * apost);
    lastupdate = t;
-   _ptr_array_synapses_lastupdate[_idx] = lastupdate;
-   _ptr_array_neurongroup_L[_postsynaptic_idx] = L;
    _ptr_array_synapses_w[_idx] = w;
-   _ptr_array_synapses_apost[_idx] = apost;
    _ptr_array_synapses_apre[_idx] = apre;
+   _ptr_array_synapses_apost[_idx] = apost;
+   _ptr_array_neurongroup_L[_postsynaptic_idx] = L;
+   _ptr_array_synapses_lastupdate[_idx] = lastupdate;
 
 		}
 	}

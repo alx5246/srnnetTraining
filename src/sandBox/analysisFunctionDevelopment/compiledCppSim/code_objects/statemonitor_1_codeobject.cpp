@@ -1043,25 +1043,25 @@ void _run_statemonitor_1_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	const int _num_source_u = 1;
-const int _num_source_v = 1;
+	const int _num_source_v = 1;
+const int _num_indices = 1;
 const int _num_clock_t = 1;
+const int _num_source_u = 1;
+const int _num_source_L = 1;
+const int _numnot_refractory = 1;
 double* const _array_statemonitor_1_t = _dynamic_array_statemonitor_1_t.empty()? 0 : &_dynamic_array_statemonitor_1_t[0];
 const int _numt = _dynamic_array_statemonitor_1_t.size();
 const int _numN = 1;
-const int _num_source_L = 1;
-const int _num_indices = 1;
-const int _numnot_refractory = 1;
 	///// POINTERS ////////////
  	
- double* __restrict  _ptr_array_neurongroup_u = _array_neurongroup_u;
  double* __restrict  _ptr_array_neurongroup_v = _array_neurongroup_v;
+ int32_t* __restrict  _ptr_array_statemonitor_1__indices = _array_statemonitor_1__indices;
  double*   _ptr_array_statemonitor_1_clock_t = _array_statemonitor_1_clock_t;
+ double* __restrict  _ptr_array_neurongroup_u = _array_neurongroup_u;
+ double* __restrict  _ptr_array_neurongroup_L = _array_neurongroup_L;
+ bool* __restrict  _ptr_array_neurongroup_not_refractory = _array_neurongroup_not_refractory;
  double* __restrict  _ptr_array_statemonitor_1_t = _array_statemonitor_1_t;
  int32_t*   _ptr_array_statemonitor_1_N = _array_statemonitor_1_N;
- double* __restrict  _ptr_array_neurongroup_L = _array_neurongroup_L;
- int32_t* __restrict  _ptr_array_statemonitor_1__indices = _array_statemonitor_1__indices;
- bool* __restrict  _ptr_array_neurongroup_not_refractory = _array_neurongroup_not_refractory;
 
 
 
@@ -1085,9 +1085,9 @@ const int _numnot_refractory = 1;
         const int _idx = _ptr_array_statemonitor_1__indices[_i];
         const int _vectorisation_idx = _idx;
                                         
+                    const double _source_L = _ptr_array_neurongroup_L[_idx];
                     const double _source_u = _ptr_array_neurongroup_u[_idx];
                     const double _source_v = _ptr_array_neurongroup_v[_idx];
-                    const double _source_L = _ptr_array_neurongroup_L[_idx];
                     const double _to_record_v = _source_v;
                     const double _to_record_u = _source_u;
                     const double _to_record_L = _source_L;

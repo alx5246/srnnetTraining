@@ -7,20 +7,20 @@
 #include "brianlib/common_math.h"
 #include "randomkit.h"
 
-#include "code_objects/synapses_post_push_spikes.h"
-#include "code_objects/synapses_pre_codeobject.h"
-#include "code_objects/neurongroup_resetter_codeobject.h"
 #include "code_objects/statemonitor_codeobject.h"
-#include "code_objects/synapses_stateupdater_codeobject.h"
-#include "code_objects/spikemonitor_codeobject.h"
-#include "code_objects/neurongroup_thresholder_codeobject.h"
+#include "code_objects/synapses_post_push_spikes.h"
 #include "code_objects/synapses_post_codeobject.h"
-#include "code_objects/statemonitor_1_codeobject.h"
-#include "code_objects/poissongroup_thresholder_codeobject.h"
-#include "code_objects/synapses_pre_initialise_queue.h"
-#include "code_objects/spikemonitor_1_codeobject.h"
-#include "code_objects/synapses_synapses_create_generator_codeobject.h"
+#include "code_objects/neurongroup_resetter_codeobject.h"
 #include "code_objects/neurongroup_stateupdater_codeobject.h"
+#include "code_objects/neurongroup_thresholder_codeobject.h"
+#include "code_objects/poissongroup_thresholder_codeobject.h"
+#include "code_objects/synapses_synapses_create_generator_codeobject.h"
+#include "code_objects/synapses_stateupdater_codeobject.h"
+#include "code_objects/spikemonitor_1_codeobject.h"
+#include "code_objects/synapses_pre_initialise_queue.h"
+#include "code_objects/statemonitor_1_codeobject.h"
+#include "code_objects/synapses_pre_codeobject.h"
+#include "code_objects/spikemonitor_codeobject.h"
 #include "code_objects/synapses_post_initialise_queue.h"
 #include "code_objects/synapses_pre_push_spikes.h"
 
@@ -76,10 +76,10 @@ int main(int argc, char **argv)
         _array_statemonitor_1__indices[0] = 0;
         _array_defaultclock_timestep[0] = 0;
         _array_defaultclock_t[0] = 0.0;
-        _array_statemonitor_1_clock_timestep[0] = 0;
-        _array_statemonitor_1_clock_t[0] = 0.0;
         _array_statemonitor_clock_timestep[0] = 0;
         _array_statemonitor_clock_t[0] = 0.0;
+        _array_statemonitor_1_clock_timestep[0] = 0;
+        _array_statemonitor_1_clock_t[0] = 0.0;
         _run_synapses_pre_initialise_queue();
         _run_synapses_post_initialise_queue();
         magicnetwork.clear();
@@ -97,13 +97,13 @@ int main(int argc, char **argv)
         magicnetwork.add(&defaultclock, _run_synapses_post_codeobject);
         magicnetwork.add(&defaultclock, _run_neurongroup_resetter_codeobject);
         magicnetwork.run(10.0, NULL, 10.0);
-        _debugmsg_synapses_pre_codeobject();
-        
-        _debugmsg_spikemonitor_codeobject();
-        
         _debugmsg_synapses_post_codeobject();
         
         _debugmsg_spikemonitor_1_codeobject();
+        
+        _debugmsg_synapses_pre_codeobject();
+        
+        _debugmsg_spikemonitor_codeobject();
 
 	}
 

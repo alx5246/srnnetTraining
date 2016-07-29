@@ -1048,21 +1048,21 @@ void _run_synapses_synapses_create_generator_codeobject()
     const std::clock_t _start_time = std::clock();
 
 	///// CONSTANTS ///////////
-	int32_t* const _array_synapses__synaptic_pre = _dynamic_array_synapses__synaptic_pre.empty()? 0 : &_dynamic_array_synapses__synaptic_pre[0];
+	int32_t* const _array_synapses__synaptic_post = _dynamic_array_synapses__synaptic_post.empty()? 0 : &_dynamic_array_synapses__synaptic_post[0];
+const int _num_synaptic_post = _dynamic_array_synapses__synaptic_post.size();
+const int _numN = 1;
+int32_t* const _array_synapses__synaptic_pre = _dynamic_array_synapses__synaptic_pre.empty()? 0 : &_dynamic_array_synapses__synaptic_pre[0];
 const int _num_synaptic_pre = _dynamic_array_synapses__synaptic_pre.size();
 int32_t* const _array_synapses_N_outgoing = _dynamic_array_synapses_N_outgoing.empty()? 0 : &_dynamic_array_synapses_N_outgoing[0];
 const int _numN_outgoing = _dynamic_array_synapses_N_outgoing.size();
-const int _numN = 1;
-int32_t* const _array_synapses__synaptic_post = _dynamic_array_synapses__synaptic_post.empty()? 0 : &_dynamic_array_synapses__synaptic_post[0];
-const int _num_synaptic_post = _dynamic_array_synapses__synaptic_post.size();
 int32_t* const _array_synapses_N_incoming = _dynamic_array_synapses_N_incoming.empty()? 0 : &_dynamic_array_synapses_N_incoming[0];
 const int _numN_incoming = _dynamic_array_synapses_N_incoming.size();
 	///// POINTERS ////////////
  	
+ int32_t* __restrict  _ptr_array_synapses__synaptic_post = _array_synapses__synaptic_post;
+ int32_t*   _ptr_array_synapses_N = _array_synapses_N;
  int32_t* __restrict  _ptr_array_synapses__synaptic_pre = _array_synapses__synaptic_pre;
  int32_t* __restrict  _ptr_array_synapses_N_outgoing = _array_synapses_N_outgoing;
- int32_t*   _ptr_array_synapses_N = _array_synapses_N;
- int32_t* __restrict  _ptr_array_synapses__synaptic_post = _array_synapses__synaptic_post;
  int32_t* __restrict  _ptr_array_synapses_N_incoming = _array_synapses_N_incoming;
 
 
@@ -1165,8 +1165,8 @@ const int _numN_incoming = _dynamic_array_synapses_N_incoming.size();
 	_dynamic_array_synapses__synaptic_pre.resize(newsize);
 	_dynamic_array_synapses_apost.resize(newsize);
 	_dynamic_array_synapses_apre.resize(newsize);
-	_dynamic_array_synapses_delay.resize(newsize);
 	_dynamic_array_synapses_delay_1.resize(newsize);
+	_dynamic_array_synapses_delay.resize(newsize);
 	_dynamic_array_synapses_lastupdate.resize(newsize);
 	_dynamic_array_synapses_R_hat.resize(newsize);
 	_dynamic_array_synapses_w.resize(newsize);

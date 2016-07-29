@@ -1044,15 +1044,15 @@ void _run_neurongroup_resetter_codeobject()
 
 	///// CONSTANTS ///////////
 	const int _num_spikespace = 2;
+const int _numv = 1;
 const int _numnot_refractory = 1;
 const int _numu = 1;
-const int _numv = 1;
 	///// POINTERS ////////////
  	
  int32_t* __restrict  _ptr_array_neurongroup__spikespace = _array_neurongroup__spikespace;
+ double* __restrict  _ptr_array_neurongroup_v = _array_neurongroup_v;
  bool* __restrict  _ptr_array_neurongroup_not_refractory = _array_neurongroup_not_refractory;
  double* __restrict  _ptr_array_neurongroup_u = _array_neurongroup_u;
- double* __restrict  _ptr_array_neurongroup_v = _array_neurongroup_v;
 
 
 
