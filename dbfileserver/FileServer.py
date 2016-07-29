@@ -17,10 +17,10 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def authenticate(self):
         method, authString = self.headers.getheader('Authorization').split(" ", 1)
         username, password = authString.decode("base64").split(":", 1)
-        print("username: %s, password: %s" % (username, password))
 
         # parse accounts xml file
-        filePath = os.environ["DBFILESERVER_ACCOUNTS_FILE"]
+        global accounts_path
+        filePath = accounts_path
         if '"' in filePath:
             filePath = filePath.replace('"', '')
         tree = ET.parse(filePath)
@@ -28,15 +28,12 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         usernameEntry = None
         for account in root:
             usernameEntry = account.attrib
-            print("stored username: %s" % usernameEntry["username"])
             if username == usernameEntry["username"]:
                 # check the password
                 salt = account[0].text
                 storedpassword = account[1].text
                 hashedPassword = binascii.hexlify(hashlib.pbkdf2_hmac('sha256', b'%s' % storedpassword,
                                                                     b'%s' % salt, 10000))
-                print("hashedPassword: %s" % hashedPassword)
-                print("same? %s" % (password == hashedPassword))
                 if password == hashedPassword:
                     return True
                 else:
@@ -61,10 +58,10 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.wfile.write('no auth header received')
             pass
         else:
-            if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write("Cannot login, system error. No account information to check against.")
+            # if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
+            #     self.send_response(500)
+            #     self.end_headers()
+            #     self.wfile.write("Cannot login, system error. No account information to check against.")
             if self.authenticate():
                 SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
             else:
@@ -75,10 +72,10 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         # Parse the form data posted
-        if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write("Cannot login, system error. No account information to check against.")
+        # if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
+        #         self.send_response(500)
+        #         self.end_headers()
+        #         self.wfile.write("Cannot login, system error. No account information to check against.")
         if not self.authenticate():
             self.do_AUTHHEAD()
             return
@@ -137,10 +134,10 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         return
 
     def do_DELETE(self):
-        if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write("Cannot login, system error. No account information to check against.")
+        # if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
+        #         self.send_response(500)
+        #         self.end_headers()
+        #         self.wfile.write("Cannot login, system error. No account information to check against.")
         if not self.authenticate():
             self.do_AUTHHEAD()
             return
@@ -163,10 +160,10 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         return
 
     def do_LIST(self):
-        if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write("Cannot login, system error. No account information to check against.")
+        # if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
+        #         self.send_response(500)
+        #         self.end_headers()
+        #         self.wfile.write("Cannot login, system error. No account information to check against.")
         if not self.authenticate():
             self.do_AUTHHEAD()
             return
@@ -210,6 +207,9 @@ if __name__ == "__main__":
             os.chdir(path)
         else:
             os.chdir(os.path.join(os.getcwd(), commands["wd"]))
+    accounts_path = os.environ["DBFILESERVER_ACCOUNTS_PATH"]\
+        if "config" not in commands or not\
+           os.path.isabs(commands["config"]) else commands["config"]
 
     try:
         # this is NOT an instantiation, but I am storing the
