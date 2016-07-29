@@ -11,6 +11,7 @@ else:
     print("executing python 3 imports")
     from http.server import HTTPServer, SimpleHTTPRequestHandler
     from socketserver import ThreadingMixIn
+    import base64
 
 import cgi
 import os
@@ -21,7 +22,7 @@ import binascii
 
 
 def convertToBits(msg):
-    if sys.version[0] < 3:
+    if sys.version_info[0] < 3:
         return msg
     else:
         return bytes(msg, "utf-8")
@@ -30,8 +31,14 @@ def convertToBits(msg):
 class ServerHandler(SimpleHTTPRequestHandler):
 
     def authenticate(self):
-        method, authString = self.headers.getheader('Authorization').split(" ", 1)
-        username, password = authString.decode("base64").split(":", 1)
+        method, authString = None, None
+        username, password = None, None
+        if sys.version_info[0] < 3:
+            method, authString = self.headers.getheader('Authorization').split(" ", 1)
+            username, password = authString.decode("base64").split(":", 1)
+        else:
+            method, authString = self.headers.get('Authorization').split(" ", 1)
+            username, password = base64.b64decode(authString).decode('utf-8').split(":", 1)
 
         # parse accounts xml file
         global accounts_path
@@ -47,9 +54,9 @@ class ServerHandler(SimpleHTTPRequestHandler):
                 # check the password
                 salt = account[0].text
                 storedpassword = account[1].text
-                hashedPassword = binascii.hexlify(hashlib.pbkdf2_hmac('sha256', b'%s' % storedpassword,
-                                                                    b'%s' % salt, 10000))
-                if password == hashedPassword:
+                hashedPassword = binascii.hexlify(hashlib.pbkdf2_hmac('sha256', convertToBits(storedpassword),
+                                                                      convertToBits(salt), 10000))
+                if convertToBits(password) == hashedPassword:
                     return True
                 else:
                     return False
@@ -57,20 +64,28 @@ class ServerHandler(SimpleHTTPRequestHandler):
 
     def do_HEAD(self):
         self.send_response(200)
-        self.send_header('Content-Type', 'text/html')
+        self.send_header('Content-Type',
+					     'text/html')
         self.end_headers()
 
     def do_AUTHHEAD(self):
         print("send header")
         self.send_response(401)
-        self.send_header('WWW-Authenticate', 'Basic realm=\"Login to fileserver\"')
-        self.send_header('Content-Type', 'text/html')
+        self.send_header('WWW-Authenticate',
+						 'Basic realm=\"Login to fileserver\"')
+        self.send_header('Content-Type',
+						 'text/html')
         self.end_headers()
 
     def do_GET(self):
-        if self.headers.getheader('Authorization') == None:
+        auth = None
+        if sys.version_info[0] < 3:
+            auth = self.headers.getheader('Authorization')
+        else:
+            auth = self.headers.get('Authorization')
+        if auth == None:
             self.do_AUTHHEAD()
-            self.wfile.write('no auth header received')
+            self.wfile.write(convertToBits('no auth header received'))
             pass
         else:
             # if os.environ.get("DBFILESERVER_ACCOUNTS_FILE") is None:
@@ -81,8 +96,8 @@ class ServerHandler(SimpleHTTPRequestHandler):
                 SimpleHTTPRequestHandler.do_GET(self)
             else:
                 self.do_AUTHHEAD()
-                self.wfile.write(self.headers.getheader('Authorization'))
-                self.wfile.write('not authenticated')
+                self.wfile.write(convertToBits(auth))
+                self.wfile.write(convertToBits('not authenticated'))
             pass
 
     def do_POST(self):
@@ -121,10 +136,10 @@ class ServerHandler(SimpleHTTPRequestHandler):
             # Begin the response
             self.send_response(200)
             self.end_headers()
-            self.wfile.write('Client: %s\n' % str(self.client_address))
-            self.wfile.write('User-agent: %s\n' % str(self.headers['user-agent']))
-            self.wfile.write('Path: %s\n' % self.path)
-            self.wfile.write('Form data:\n')
+            self.wfile.write(convertToBits('Client: %s\n' % str(self.client_address)))
+            self.wfile.write(convertToBits('User-agent: %s\n' % str(self.headers['user-agent'])))
+            self.wfile.write(convertToBits('Path: %s\n' % self.path))
+            self.wfile.write(convertToBits('Form data:\n'))
 
             # Echo back information about what was posted in the form
             for field in form.keys():
@@ -134,17 +149,17 @@ class ServerHandler(SimpleHTTPRequestHandler):
                     file_data = field_item.file.read()
                     file_len = len(file_data)
                     del file_data
-                    self.wfile.write('\tUploaded %s as "%s" (%d bytes)\n' % \
-                            (field, field_item.filename, file_len))
+                    self.wfile.write(convertToBits('\tUploaded %s as "%s" (%d bytes)\n' % \
+                            (field, field_item.filename, file_len)))
 
                 else:
                     # Regular form value
-                    self.wfile.write('\t%s=%s\n' % (field, form[field].value))
+                    self.wfile.write(convertToBits('\t%s=%s\n' % (field, form[field].value)))
         else:
             # send back error response
             self.send_response(500)
             self.end_headers()
-            self.wfile.write("Error: %s" % exception)
+            self.wfile.write(convertToBits("Error: %s" % exception))
 
         return
 
@@ -171,7 +186,7 @@ class ServerHandler(SimpleHTTPRequestHandler):
 
         self.send_response(responseCode)
         self.end_headers()
-        self.wfile.write(msg)
+        self.wfile.write(convertToBits(msg))
         return
 
     def do_LIST(self):
@@ -187,7 +202,7 @@ class ServerHandler(SimpleHTTPRequestHandler):
         self.send_response(responseCode)
         self.end_headers()
         dirContents = "\n".join(os.listdir(filePath))
-        self.wfile.write(bytes(dirContents))
+        self.wfile.write(convertToBits(dirContents))
         return
 
 class MultithreadedServer(ThreadingMixIn,
