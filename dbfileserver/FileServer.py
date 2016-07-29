@@ -1,9 +1,17 @@
 #!/usr/bin/python
+import sys
 
-import BaseHTTPServer
-import SimpleHTTPServer
-import SocketServer
-import logging
+print("sys.version[0]: %s" % sys.version_info[0])
+if sys.version_info[0] < 3:
+    print("executing python 2 imports")
+    from BaseHTTPServer import HTTPServer
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
+    from SocketServer import ThreadingMixIn
+else:
+    print("executing python 3 imports")
+    from http.server import HTTPServer, SimpleHTTPRequestHandler
+    from socketserver import ThreadingMixIn
+
 import cgi
 import os
 import sys
@@ -12,7 +20,14 @@ import hashlib
 import binascii
 
 
-class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+def convertToBits(msg):
+    if sys.version[0] < 3:
+        return msg
+    else:
+        return bytes(msg, "utf-8")
+
+
+class ServerHandler(SimpleHTTPRequestHandler):
 
     def authenticate(self):
         method, authString = self.headers.getheader('Authorization').split(" ", 1)
@@ -63,7 +78,7 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             #     self.end_headers()
             #     self.wfile.write("Cannot login, system error. No account information to check against.")
             if self.authenticate():
-                SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+                SimpleHTTPRequestHandler.do_GET(self)
             else:
                 self.do_AUTHHEAD()
                 self.wfile.write(self.headers.getheader('Authorization'))
@@ -98,7 +113,7 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
                     with open(filePath, "wb") as newFile:
                         newFile.write(field_item.file.read())
-                except Exception, e:
+                except Exception as e:
                     print("Exception: %s" % e)
                     exception = e
 
@@ -151,7 +166,7 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 msg = "File %s deleted (%s bytes)" % (filePath, numBytes)
             else:
                 msg = "File %s does not exist" % filePath
-        except Exception, e:
+        except Exception as e:
             msg = "Unknown error: %s" % e
 
         self.send_response(responseCode)
@@ -175,8 +190,8 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wfile.write(bytes(dirContents))
         return
 
-class MultithreadedServer(SocketServer.ThreadingMixIn,
-                          BaseHTTPServer.HTTPServer):
+class MultithreadedServer(ThreadingMixIn,
+                          HTTPServer):
     pass
 
 
