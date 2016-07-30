@@ -1,6 +1,7 @@
 # SYSTEM IMPORTS
 import os
 import requests
+import sys
 
 # PYTHON PROJECT IMPORTS
 
@@ -116,4 +117,7 @@ class HTTPRequest(object):
         if response.status_code != 200:
             print("Error %s listing contents of %s" % (response.status_code,
                                                        fullUrlPath))
-        return response.content.decode('utf-8')
+        if sys.version_info[0] < 3:
+            return str(response.content)
+        else:
+            return response.content.decode('utf-8')
