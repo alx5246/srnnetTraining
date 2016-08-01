@@ -20,8 +20,9 @@ sys.path.extend([currentDir, scriptDir])
 
 # PYTHON PROJECT IMPORTS
 from DBManager import DBManager
-import 
+import stdUnpickler
 from HTTPRequest import HTTPRequest, urljoin
+from DataManager import DataManager
 
 # delete variables so that outside users do not have access to them
 del currentDir

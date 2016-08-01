@@ -48,7 +48,10 @@ class HTTPRequest(object):
         with open(receivingFilePath, ("wb" if readBytes else "w")) as f:
             for chunk in response.iter_content(fileChunkSize):
                 if currentBytes/numBytes >= minPercentToPrint:
-                    print("[%s%%]" % int(currentBytes/numBytes * 100)),
+                    if sys.version_info[0] < 3:
+                        print("[%s%%]" % int(currentBytes/numBytes * 100)),
+                    else:
+                        print("[%s%%]" % int(currentBytes/numBytes * 100), end=" ")
                     minPercentToPrint += 0.1
                 f.write(chunk)
                 currentBytes += len(chunk)
