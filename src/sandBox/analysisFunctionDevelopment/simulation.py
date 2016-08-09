@@ -19,15 +19,21 @@ import pickle
 import numpy
 
 import os
+import shutil
 import sys
 import time as Time
+import tarfile
 
 currentDir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(currentDir)
 
 
 class SimObject(object):
-    def __init__(self):
+    def __init__(self, brianInternalDir=None):
+        if brianInternalDir is not None:
+            if os.path.exists(brianInternalDir):
+                shutil.rmtree(brianInternalDir)
+            os.makedirs(brianInternalDir)
         startTime = Time.clock()
 
         # this is different from the earlier simulation. brian2 will (by default) build the
@@ -130,12 +136,12 @@ class SimObject(object):
         # that we set with the set_device() function. We can do this be calling the
         # get_device() function, because build() is actually a method (member function)
         # of whatever object brain2 is internally representing a network.
-        get_device().build()
+        get_device().build(directory=brianInternalDir)
         endTime = Time.clock()
-        print("Took %ss to construct Network using brian2" % (endTime - startTime))
+        # print("Took %ss to construct Network using brian2" % (endTime - startTime))
 
     # a method to run the simulation on the network made in the constructor.
-    def execute(self, alpha, beta, T, gamma, time, timestep):
+    def execute(self, alpha, beta, T, gamma, time, timestep, iteration, fileName):
         startTime = Time.clock()
         defaultclock.dt = timestep * usecond  # Set the simulation clock
         run(time * second)
@@ -174,53 +180,69 @@ class SimObject(object):
         # print("SynMonitor.t is \n", SynMonitor.t)
         # print("The type for numpy.asarry(NeuMonitor1.t) is: ", type(numpy.asarray(NeuMonitor1.t)))
 
-        print("\n....Saving data, version 1 ......")
-        Output = dict()
+        # print("\n....Saving data, version 1 ......")
+        global currentDir
+        saveDir = os.path.join(currentDir, fileName)
+        os.makedirs(saveDir)
 
-        Output["Syn_w"] = dict()
-        Output["Syn_w"]["data"] = pickle.dumps(self.SynMonitor.w)  # Save the date
-        Output["Syn_w"]["units"] = pickle.dumps(get_unit(self.SynMonitor.w))  # Save the units
+        with open(os.path.join(saveDir, "syn_w.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.SynMonitor.w), file)
+        with open(os.path.join(saveDir, 'syn_w_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.SynMonitor.w), file)
 
-        Output["Syn_t"] = dict()
-        Output["Syn_t"]["data"] = pickle.dumps(numpy.asarray(self.SynMonitor.t))  # Save the date
-        Output["Syn_t"]["units"] = pickle.dumps(get_unit(self.SynMonitor.t))  # Save the units
+        with open(os.path.join(saveDir, "syn_t.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.SynMonitor.t), file)
+        with open(os.path.join(saveDir, 'syn_t_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.SynMonitor.t), file)
 
-        Output["Syn_R_hat"] = dict()
-        Output["Syn_R_hat"]["data"] = pickle.dumps(self.SynMonitor.R_hat)  # Save the date
-        Output["Syn_R_hat"]["units"] = pickle.dumps(get_unit(self.SynMonitor.R_hat))  # Save the units
+        with open(os.path.join(saveDir, "syn_r_hat.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.SynMonitor.R_hat), file)
+        with open(os.path.join(saveDir, 'syn_r_hat_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.SynMonitor.R_hat), file)
 
-        Output["Syn_K"] = dict()
-        Output["Syn_K"]["data"] = pickle.dumps(self.SynMonitor.K)  # Save the date
-        Output["Syn_K"]["units"] = pickle.dumps(get_unit(self.SynMonitor.K))  # Save the units
+        with open(os.path.join(saveDir, "syn_k.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.SynMonitor.K), file)
+        with open(os.path.join(saveDir, 'syn_k_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.SynMonitor.K), file)
 
-        Output["Neu_v"] = dict()
-        Output["Neu_v"]["data"] = pickle.dumps(self.NeuMonitor2.v)  # Save the date
-        Output["Neu_v"]["units"] = pickle.dumps(get_unit(self.NeuMonitor2.v))  # Save the units
+        with open(os.path.join(saveDir, "neu2_v.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.NeuMonitor2.v), file)
+        with open(os.path.join(saveDir, 'neu2_v_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.NeuMonitor2.v), file)
 
-        Output["Neu_u"] = dict()
-        Output["Neu_u"]["data"] = pickle.dumps(self.NeuMonitor2.u)  # Save the date
-        Output["Neu_u"]["units"] = pickle.dumps(get_unit(self.NeuMonitor2.u))  # Save the units
+        with open(os.path.join(saveDir, "neu2_u.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.NeuMonitor2.u), file)
+        with open(os.path.join(saveDir, 'neu2_u_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.NeuMonitor2.u), file)
 
-        Output["Neu_L"] = dict()
-        Output["Neu_L"]["data"] = pickle.dumps(self.NeuMonitor2.L)  # Save the date
-        Output["Neu_L"]["units"] = pickle.dumps(get_unit(self.NeuMonitor2.L))  # Save the units
+        with open(os.path.join(saveDir, "neu2_l.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.NeuMonitor2.L), file)
+        with open(os.path.join(saveDir, 'neu2_l_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.NeuMonitor2.L), file)
 
-        Output["Poi_t"] = dict()
-        Output["Poi_t"]["data"] = pickle.dumps(numpy.asarray(self.PoiMonitor.t))  # Save the data
-        Output["Poi_t"]["units"] = pickle.dumps(get_unit(self.PoiMonitor.t))  # Save the units
+        with open(os.path.join(saveDir, "poi_t.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.PoiMonitor.t), file)
+        with open(os.path.join(saveDir, 'poi_t_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.PoiMonitor.t), file)
 
-        Output["Poi_i"] = dict()
-        Output["Poi_i"]["data"] = pickle.dumps(numpy.asarray(self.PoiMonitor.i))  # Save the date
-        Output["Poi_i"]["units"] = pickle.dumps(get_unit(self.PoiMonitor.i))  # Save the units
+        with open(os.path.join(saveDir, "poi_i.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.PoiMonitor.i), file)
+        with open(os.path.join(saveDir, 'poi_i_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.PoiMonitor.i), file)
 
-        Output["Neu_t"] = dict()
-        Output["Neu_t"]["data"] = pickle.dumps(numpy.asarray(self.NeuMonitor1.t))  # Save the date
-        Output["Neu_t"]["units"] = pickle.dumps(get_unit(self.NeuMonitor1.t))  # Save the units
+        with open(os.path.join(saveDir, "neu1_t.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.NeuMonitor1.t), file)
+        with open(os.path.join(saveDir, 'neu1_t_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.NeuMonitor1.t), file)
 
-        Output["Neu_i"] = dict()
-        Output["Neu_i"]["data"] = pickle.dumps(numpy.asarray(self.NeuMonitor1.i))  # Save the date
-        Output["Neu_i"]["units"] = pickle.dumps(get_unit(self.NeuMonitor1.i))  # Save the units
+        with open(os.path.join(saveDir, "neu1_i.pickl"), 'wb') as file:
+            pickle.dump(numpy.asarray(self.NeuMonitor1.i), file)
+        with open(os.path.join(saveDir, 'neu1_i_units.pickl'), 'wb') as file:
+            pickle.dump(get_unit(self.NeuMonitor1.i), file)
 
+        with tarfile.open(os.path.join(currentDir, fileName + ".tar.gz"), "w:gz") as tarFile:
+            tarFile.add(saveDir, arcname=fileName)
+        shutil.rmtree(saveDir)
         # Now that I have saved the data I want to make sure I can also open it and it is what I expect!
         # print("Testing saved data, opening data just saved ... ")
 
@@ -236,5 +258,5 @@ class SimObject(object):
 
         # Create Dictionary
         endTime = Time.clock()
-        print("\tTook %ss to run simulation and record data" % (endTime - startTime))
-        return Output
+        # print("\tTook %ss to run simulation and record data" % (endTime - startTime))
+        return os.path.join(currentDir, fileName + ".tar.gz")

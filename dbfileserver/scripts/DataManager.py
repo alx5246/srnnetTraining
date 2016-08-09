@@ -25,42 +25,19 @@ class DataManager(object):
 			self._filerserverConnection = HTTPRequest.HTTPRequest(fileserverUri)
 		self._currentDir = os.path.dirname(os.path.realpath(__file__))
 
-	def convertDictToDirRecursively(self, dataDict, fileName, currentDir):
-		if not os.path.exists(currentDir):
-			os.makedirs(currentDir)
-		for dataFile in dataDict.keys():
-			# we need to make a subdirectory
-			if isinstance(dataDict[dataFile], dict):
-				self.convertDictToDirRecursively(dataDict[dataFile], fileName + "_" + dataFile, os.path.join(currentDir, dataFile))
-			else:
-				# write data to temp file
-				# get file type of the file
-				filename, file_extension = os.path.splitext(dataDict[dataFile])
-				# copy file to directory
-				shutil.copyfile(dataDict[dataFile], os.path.join(currentDir, dataFile + file_extension))
-				# delete original copy
-				# os.remove(dataDict[dataFile])
-
-	def uploadData(self, dataDict, dbParams, collectionName, fileName, urlComponents):
-		self.convertDictToDirRecursively(dataDict, fileName, os.path.join(self._currentDir, fileName))
-
-		# create the .tar.gz file
-		with tarfile.open(os.path.join(self._currentDir, fileName + ".tar.gz"), "w:gz") as tarFile:
-			tarFile.add(os.path.join(self._currentDir, fileName), arcname=fileName)
-
+	def uploadData(self, dataFilePath, dbParams, collectionName, urlComponents):
 		# upload file to file server
-		self._filerserverConnection.upload(os.path.join(self._currentDir, fileName + ".tar.gz"), urlParams=urlComponents)
+		self._filerserverConnection.upload(dataFilePath, urlParams=urlComponents)
 
 		# add entry to the database
 		self._dbManager.openCollection(collectionName)
-		dbParams["fileName"] = fileName
+		dbParams["fileName"] = dataFilePath.split("\\")[-1].split(".")[0]
 		dbParams["fileType"] = ".tar.gz"
 		dbParams["fileserver_url"] = HTTPRequest.urljoin(*urlComponents)
 		self._dbManager.insert(dbParams, insertOne=True)
 
 		# delete local copy
-		os.remove(os.path.join(self._currentDir, fileName + ".tar.gz"))
-		shutil.rmtree(os.path.join(self._currentDir, fileName))
+		os.remove(dataFilePath)
 
 	def makeDirectoryToDictRecursively(self, dirPath):
 		dirDict = {}

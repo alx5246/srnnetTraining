@@ -15,7 +15,10 @@ dataDict = {
 		"DBManager": os.path.join(currentDir, "DBManager.py")
 	}
 }
-x.uploadData(dataDict, {"upload": 1}, "testCollection", "testUpload", ["carlsonOneNeuron", "STDParameterRange"])
+x.uploadData(dataDict,
+			 {"upload": 1},
+			 "testCollection",
+			 "testUpload", ["carlsonOneNeuron", "STDParameterRange"])
 
 def extractionFunction(dirDict):
 	return dirDict
@@ -30,7 +33,9 @@ def prettyPrintDict(dictionary, offset):
 		else:
 			print(offset + key + ": " + dictionary[key])
 
-dataList = x.downloadData("testCollection", {"upload": 1}, extractionFunction)
+dataList = x.downloadData("testCollection", 
+						  {"upload": 1},
+						  extractionFunction)
 print("len(dataList): %s" % len(dataList))
 # for data in dataList:
 # 	prettyPrintDict(data, "")
