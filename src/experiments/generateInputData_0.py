@@ -1,8 +1,8 @@
 # A. Lonsberry
-# June 2017
 #
 # DESCRIPTION
-#   This python file will have method(s) to create arrays of spike times that can be used as input to some simulation.
+#   This python file will have method(s) to create arrays of spike times that can be used as input to some simulations.
+
 
 import math
 import random
@@ -142,10 +142,3 @@ if __name__ == "__main__":
     #Test (2)
     spikesArray = multiPoissonStreams(3, startTime=0.0, stopTime=10.0, rateBounds=[1., 5.], intervalBounds=[1., 3.])
     print(spikesArray)
-
-
-
-
-
-
-

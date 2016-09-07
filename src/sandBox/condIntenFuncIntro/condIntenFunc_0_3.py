@@ -10,10 +10,21 @@
 #       as self.filterManger which handles all the different filters, and a self.condIntenFunctions list which will
 #       store all the condition-intensity-function objects. ....
 #   (2) ...
+#
+# PROBLEMS
+#   (1) August 4, 2016: I am using numpy.arange() a number of times below, and there are rounding errors associated with
+#       it, so this is problematic when I am searching or sorting or equating with floating point comparisons.
+#       August 8, 2014: The problem seems to be fixed.
 
 import numpy
 import matplotlib.pyplot as plt
 import numpy.matlib
+import time
+
+# Also import comiled Code
+import updateCifCoeffsSGDcy
+import updateCifCoeffsSGDcy1
+
 
 
 ########################################################################################################################
@@ -73,7 +84,7 @@ def truncatedGaussianFilterGenerator(a, b, c, timeLength, dt, truncation):
     Thus if 'timeLength' is 1.0 seconds which means the Gaussian filter spans from -1 to 1 seconds, and the truncation
     is 0.0, this means all the points in the fitler vector >0 are made to 0.
 
-    IMPORATANT TO NOTE, that because we have a truncation, we are inplicitly storing a time-delay in the filter!
+    IMPORATANT TO NOTE, that because we have a truncation, we are implicitly storing a time-delay in the filter!
 
     :param a:
     :param b:
@@ -83,12 +94,17 @@ def truncatedGaussianFilterGenerator(a, b, c, timeLength, dt, truncation):
     :param truncation:
     :return:
     """
-
-    xvals = numpy.arange(start=-1.*timeLength, stop=timeLength+dt, step=dt)  #Make sure we add the last time-step by adding dt to 'stop'
+    # Use numpy.arange and include the last time-step. NOTE, because of rounding errors we have dumped
+    # numpy.arange() so not I am using numpy.linspace, but have to be careful not to include the last point! Also we
+    # have to be careful using int() as int(6.9999) is 6 and not 7... so round before hand.
+    # timeArray = numpy.arange(start=startTime-backupTime, stop=stopTime, step=dt)
+    #xvals = numpy.arange(start=-1. * timeLength, stop=timeLength + dt, step=dt)  # Make sure we add the last time-step by adding dt to 'stop'
+    numbTimeSteps = int(numpy.round((timeLength*2.0 + dt) / dt)) #We add dt in the summation because we want to include a spot for time=0.
+    xvals = numpy.linspace(-1. * timeLength, timeLength, numbTimeSteps)
     convVector = a * numpy.exp(-1. * (((xvals - b) ** 2.) / (2. * c ** 2.)))
     # We want the value at the time = truncation to have a value, but everything greater has to be equal to zero. And
     # more specifically we just get rid of those extra values by deleting them from the array
-    convVector = convVector[xvals<truncation]
+    convVector = convVector[xvals<=truncation]
     # When later calling numpy.convole, the vector get flipped along the axis, so we pre-flip here so when called it
     # gets flipped back as expected
     convVector = convVector[::-1]
@@ -99,36 +115,6 @@ def truncatedGaussianFilterGenerator(a, b, c, timeLength, dt, truncation):
 ########################################################################################################################
 # Convolutionl Functions
 ########################################################################################################################
-
-
-def convolveSpikeTimes(convVector, spikeTimes, startTime, stopTime, dt):
-    '''
-    DESCRIPTION
-    Given our spikeTimes, we need to to convle the convolution filter with the the spikes. This is done by making a
-    boolean array and then convolving with that array. IMPORTANT to note, we do NOT include the timing overlaps,
-    that is we return a filtered vector from 'startTime' to the given 'stopTime'. IMPORTANT not note, we include the
-    given stopTime as well.
-
-    :param convVector:
-    :param spikeTimes:
-    :param startTime:
-    :param stopTime:
-    :param dt:
-    :return:
-    '''
-
-    timeArray = numpy.arange(start=startTime, stop=stopTime+dt, step=dt) #This is going to be for the output
-    boolArray = numpy.zeros(int((stopTime-startTime)/dt)+1) #We +1 in order to add the end time.
-    # Find indicies of the zeros array that we will want to set to a spike
-    indsArray = ((spikeTimes - startTime)/dt)
-    # Set the boolArray to have spikes where they should
-    boolArray[indsArray.astype(int)] = 1.
-    #Now convolve boolsArray with the convolution vector
-    outputArray = numpy.convolve(boolArray, convVector, mode='full')
-    #Now trimp the array down both side of the data
-    finalOutputArray = outputArray[(convVector.size-1):-(convVector.size-1)]
-    #Output the entire array excpet the last values because they are not causel
-    return [finalOutputArray, timeArray]
 
 
 def convolveSpikeTimesWthBackUp(convVector, spikeTimes, startTime, stopTime, dt, backupTime=0):
@@ -156,15 +142,21 @@ def convolveSpikeTimesWthBackUp(convVector, spikeTimes, startTime, stopTime, dt,
         over the the doamian [startTime, stopTime), and timeArray is also a 1D numpy.array of equal length but
         each part of the vector includes the corresponding time-step value.
     """
-    # Use numpy.arange and DO NOT include the last time-step
-    timeArray = numpy.arange(start=startTime-backupTime, stop=stopTime, step=dt)  # This is going to be for the output
-    boolArray = numpy.zeros(int((stopTime - (startTime-backupTime)) / dt))
+    # Use numpy.arange and DO NOT include the last time-step. NOTE, because of rounding errors we have dumped
+    # numpy.arange() so not I am using numpy.linspace, but have to be careful not to include the last point! Also we
+    # need to be careful with int(), as for example int(5.99999) = 5 and not 6.
+    #timeArray = numpy.arange(start=startTime-backupTime, stop=stopTime, step=dt)  # This is going to be for the output
+    numbTimeSteps = int(numpy.round((stopTime-dt-startTime)/dt))
+    timeArray = numpy.linspace(startTime, stopTime-dt, numbTimeSteps+1) # We have to add 1 to the number of time-steps or else this would not work as intendted (could also remove -dt in line above)
+    # Make an array of 0s and 1s to indicate non-spikes and spikes.
+    boolArray = numpy.zeros(int(numpy.round((stopTime-(startTime-backupTime))/dt))) # Use round before using int to handle floating point inconsistencies, remember we do not want to inlcude the last time-step
     indsArray = ((spikeTimes - (startTime-backupTime))/dt)
+    indsArray = numpy.round(indsArray) # Handle any rounding error before using int() later.
     # Make sure if there is a spike that has a spike-time of end-time, we make it slightly less so it rounds down
-    indsArray[indsArray>=boolArray.size] -= 1
+    indsArray[indsArray >= boolArray.size] -= 1
     boolArray[indsArray.astype(int)] = 1.
     outputArray = numpy.convolve(boolArray, convVector, mode='valid')
-    numbStepsToGrab = int((stopTime-startTime)/dt)
+    numbStepsToGrab = int(numpy.round((stopTime-startTime)/dt)) # Use round before using int to handle floating point inconsistencies
     finalOutputArray = outputArray[-numbStepsToGrab:]
     timeArray = timeArray[-numbStepsToGrab:]
     return [finalOutputArray, timeArray]
@@ -236,12 +228,13 @@ class conItenFunc:
             number of columns equal to the number of coefficients. When this is created, it is ASSUMED,
             that the data samples come from consecutive time-steps, with the last data-point coming from
             the point in time last recorded here in self.spikeBoolTimeArray.
-        self.spikeBoolArray: for each time-step (as noted in self.spikeTimeArray), we have either a 0 or 1 to indicate
+        self.spikeArray: for each time-step (as noted in self.spikeTimeArray), we have either a 0 or 1 to indicate
             no-spike or spike respectively
         self.spikeTimeArray: the associated time of the spike given in self.spikeBoolArray
+
         :param neuronGroup: integer, the neuron-group the neuron resides within
         :param neuronId: integer, the neuron index within the group
-        :param dt: double, units: seconds, the time-step used for all the CIFs.
+        :param dt: double, units: seconds, the time-step used for all the CIFs
         """
         self.neuronGroup        = neuronGroup
         self.neuronId           = neuronId
@@ -338,7 +331,7 @@ class conItenFunc:
         be a bit of a memory suck as this likly replicates much of the memory in condInenFuncFilterManager object,
         but it is here for ease of use and manipulation.
 
-        Here self.spikeArray and self.spikeTimeArray are appended. Data is only deleted if it overlaps currently
+        Here both self.spikeArray and self.spikeTimeArray are appended. Data is only deleted if it overlaps currently
         stored values. We do not store spike-times explicity in this class, rather we have a boolean array (stored in
         self.spikeArray) and an array of equal size that indicates the time step (stored in self.spikeTimeArray)
 
@@ -358,25 +351,37 @@ class conItenFunc:
 
         :return: N/A
         """
-        # Create boolean array in place of the spike times, remember we do not include the endTime time-step!
-        timeArray = numpy.arange(start=startTime, stop=endTime, step=dt)
-        boolArray = numpy.zeros(timeArray.size)
-        indsArray = (spikeTimes-startTime)/dt
+        # Create boolean array in place of the spike times, remember we do not include the endTime time-step! NOTE:
+        # rounding problems with numpy.arange have been problematic, so going to use numpy.linspace instead. The
+        # arange function can lead to more pronouced rounding errors. Also we need to use numpy.round, before using
+        # the int() command, as int() does not round as expected. When we make the time array we do not want to include
+        # the 'endTime'.
+        #timeArray = numpy.arange(start=startTime, stop=endTime, step=dt)
+        timeArray = numpy.linspace(startTime, endTime-dt, int(numpy.round((endTime-startTime)/dt)))
+        boolArray = numpy.zeros(timeArray.shape[0])
+        indsArray = numpy.round((spikeTimes-startTime)/dt) # Use round() function before passing into int() function
         # Make sure if there is a spike that has a spike-time of end-time, we make it slightly less so it rounds down
         indsArray[indsArray >= boolArray.size] -= 1
         boolArray[indsArray.astype(int)] = 1.
         # Append/update self.spikeArray and self.spikeTimeArray
-        if self.spikeArray.size>0:
+        if self.spikeArray.size > 0:
             # Find the next expected time-step that is thought to be seen occuring next in the input data. Depending on
-            # on what this is will change how the appending process works
+            # on what this is will change how the new data is added to the old stored data.
             expectedNextTime = self.spikeTimeArray[-1] + dt
             # Check if there is missing time between the stored and given data, thus we have to add filler time and
-            # filler data. Then append the new information.
-            if timeArray[0]>expectedNextTime:
-                fillerTimes = numpy.arange(start=expectedNextTime, stop=startTime, step=dt)
+            # filler data. Then append the new information. NOTE, because of rounding issues we cannot directly compare
+            # floats in the if-statements conditional.
+            if (timeArray[0] - expectedNextTime) > dt*.95:
+                #fillerTimes = numpy.arange(start=expectedNextTime, stop=startTime, step=dt)
+                fillerTimes = numpy.linspace(start=expectedNextTime, stop=startTime-dt, num=int(numpy.round((expectedNextTime-startTime)/dt)))
                 fillerZeros = numpy.zeros(fillerTimes.size)
-                self.spikeArray = numpy.hstack((self.spikeArray, fillerZeros, boolArray))
-                self.spikeTimeArray = numpy.hstack((self.spikeTimeArray, fillerTimes, timeArray))
+                # Because of rounding issues, we aagain want to double check and make sure we are updating as expected.
+                if fillerZeros.size>0:
+                    self.spikeArray = numpy.hstack((self.spikeArray, fillerZeros, boolArray))
+                    self.spikeTimeArray = numpy.hstack((self.spikeTimeArray, fillerTimes, timeArray))
+                else:
+                    self.spikeArray = numpy.hstack((self.spikeArray, boolArray))
+                    self.spikeTimeArray = numpy.hstack((self.spikeTimeArray, timeArray))
             # Check if there is an overlap in time, if so we remove overlap and replace where needed.
             elif timeArray[0]<expectedNextTime:
                 indsPre = numpy.where((self.spikeTimeArray<expectedNextTime))
@@ -402,18 +407,6 @@ class conItenFunc:
         else:
             self.spikeArray = boolArray
             self.spikeTimeArray = timeArray
-
-
-    def clearSpikeArray(self):
-        """
-        DESCRIPTION
-        This is meant to clear out spike memory of the neuron in question. This should be typically run after
-        probabilities are calculated and after CIF coefficients are updated.
-
-        :return: N/A
-        """
-        self.spikeArray = numpy.array([])
-        self.spikeTimeArray = numpy.array([])
 
 
     def createFeasibleFilteredDataSet(self, filteredArrays):
@@ -509,6 +502,18 @@ class conItenFunc:
 
         :return: N/A
         """
+
+        """
+        dataMatrixCopy = self.dataMatrix.copy()
+        spikeArrayCopy = self.spikeArray.copy()
+        filterCoefficientsCopy = self.filterCoefficients.copy()
+
+        dataMatrixCopy1 = self.dataMatrix.copy()
+        spikeArrayCopy1 = self.spikeArray.copy()
+        filterCoefficientsCopy1 = self.filterCoefficients.copy()
+
+        t0 = time.clock()
+
         if self.dataMatrix.shape[0]>0 and self.dataMatrix.shape[1]>0:
             # Iterate over all the stored data points
             numbIts = self.dataMatrix.shape[0]
@@ -522,6 +527,47 @@ class conItenFunc:
                 # If I slice as usual the self.dataMatrix (like in MATLAB) numpy will reduce the dimensions. I can fix
                 # this by using the 'None' keyword
                 self.filterCoefficients = self.filterCoefficients + learningRate*(spikeVal - predictionOutput[i, 0])*numpy.transpose(self.dataMatrix[i, None])
+
+        tfirst = time.clock() - t0
+        myStr = "\nTime to run regular python update = " + str(tfirst)
+        print(myStr)
+
+        # Run second implementation
+        t0 = time.clock()
+        filterCoefficientsNew1 = updateCifCoeffsSGDcy.updateCifCoeffsSGDcy(dataMatrixCopy, spikeArrayCopy, filterCoefficientsCopy, learningRate)
+        tfirst = time.clock() - t0
+        myStr = "Time to run compiled python update = " + str(tfirst)
+        print(myStr)
+        print(numpy.mean(filterCoefficientsNew1 - self.filterCoefficients,axis=0))
+
+        # Now try the thrid "view" version
+        t0 = time.clock()
+        filterCoefficientsNew2 = updateCifCoeffsSGDcy1.updateCifCoeffsSGDcy(dataMatrixCopy1, spikeArrayCopy1, filterCoefficientsCopy1, learningRate)
+        tfirst = time.clock() - t0
+        myStr = "Time to run second compiled python update = " + str(tfirst)
+        print(myStr)
+        print(numpy.mean(filterCoefficientsNew2 - self.filterCoefficients,axis=0))
+
+        """
+        t0 = time.clock()
+        self.filterCoefficients = updateCifCoeffsSGDcy1.updateCifCoeffsSGDcy(self.dataMatrix, self.spikeArray,
+                                                                             self.filterCoefficients, learningRate)
+        tfirst = time.clock() - t0
+        myStr = "Time to CIF update = " + str(tfirst)
+        print(myStr)
+
+
+    def clearSpikeArray(self):
+        """
+        DESCRIPTION
+        This is meant to clear out spike memory of the neuron in question. This should be typically run after
+        probabilities are calculated and after CIF coefficients are updated. Then we will not need the stored data
+        any longer
+
+        :return: N/A
+        """
+        self.spikeArray = numpy.array([])
+        self.spikeTimeArray = numpy.array([])
 
 
 class condInenFuncFilterManager:
@@ -917,24 +963,37 @@ class condInenFuncFilterManager:
         """
         if filteredArray.size>0: # Check if the input data is valid
             #Find the time-step!
-            dt = self.filtersDt[self.neuronToFilter[ind,2]]
+            dt = self.filtersDt[self.neuronToFilter[ind, 2]]
             # Check if the stored array previously has values.
             if self.filteredArraysTimeValues[ind].size>0:
                 # Find the next expected time-step that is thought to be seen occuring next in the input data. Depending
                 # on what this is will change how the appending process works.
                 expectedNextTime = self.filteredArraysTimeValues[ind][-1] + dt
                 # Check if there is missing time between the stored and given data, thus we have to add filler time and
-                # filler filtered data. Then append the correct self.filtereArrays and self.filterArraysTimeValues
-                if filteredArrayTimes[0]>expectedNextTime:
-                    fillerTimes = numpy.arange(start=expectedNextTime, stop=self.filteredArraysTimeValues[ind][0], step=dt)
-                    fillerZeros = numpy.zeros((1,fillerTimes.size))
-                    self.filteredArrays[ind] = numpy.hstack((self.filteredArrays[ind], fillerZeros, filteredArray)) #Filtered spike train
-                    self.filteredArraysTimeValues[ind] = numpy.hstack((self.filteredArraysTimeValues[ind], fillerTimes, filteredArrayTimes)) #Associated time arrays
+                # filler filtered data. Then append the correct self.filtereArrays and self.filterArraysTimeValues. Note
+                # the code below may seem a bit odd, but because of rounding errors, when numpy.arange() is used (it is
+                # used to create 'filterArrayTimes') rounding errors tend to be involved so one cannot expect these
+                # to be exactly correct. Thus we introduce numpy.linspace instead.
+                # if filteredArrayTimes[0]>expectedNextTime:
+                if filteredArrayTimes[0]-expectedNextTime > dt*.95:
+                    #fillerTimes = numpy.arange(start=expectedNextTime, stop=self.filteredArraysTimeValues[ind][0], step=dt)
+                    fillerTimes = numpy.linspace(start=expectedNextTime, stop=filteredArrayTimes[0]-dt, num=int(numpy.round((filteredArrayTimes[0]-expectedNextTime)/dt)))
+                    fillerZeros = numpy.zeros((1, fillerTimes.size))
+                    # Again we need to double check for rounding issues once more.
+                    if fillerZeros.size>0:
+                        self.filteredArrays[ind] = numpy.hstack((self.filteredArrays[ind], fillerZeros, filteredArray)) #Filtered spike train
+                        self.filteredArraysTimeValues[ind] = numpy.hstack((self.filteredArraysTimeValues[ind], fillerTimes, filteredArrayTimes)) #Associated time arrays
+                    else:
+                        self.filteredArrays[ind] = numpy.hstack((self.filteredArrays[ind], filteredArray))  # Filtered spike train
+                        self.filteredArraysTimeValues[ind] = numpy.hstack((self.filteredArraysTimeValues[ind], filteredArrayTimes))  # Associated time arrays
                 # Check if there is an overlap in time, between stored data and that of the newly given data. This is
                 # not desireable, best is that given data is a continuation of some simulation. However, if this is the
                 # case, we clear out part of the memory in question, and replace it. It is UP TO THE USER to make sure
-                # that this operation makes sense.
-                elif filteredArrayTimes[0]<expectedNextTime:
+                # that this operation makes sense. Note the code below may seem a bit odd, but because of rounding
+                # errors, when numpy.arange() is used (it is used to create 'filterArrayTimes') rounding errors tend to
+                # be involved so one cannot expect these to be exactly correct.
+                # elif filteredArrayTimes[0]<expectedNextTime:
+                elif expectedNextTime-filteredArrayTimes[0] > dt*.05:
                     indsPre = numpy.where((self.filteredArraysTimeValues[ind]<expectedNextTime))
                     indsPost = numpy.where((self.filteredArraysTimeValues[ind]>filteredArrayTimes[-1]))
                     if indsPre[0].size>0 and indsPost[0].size>0:
@@ -950,7 +1009,7 @@ class condInenFuncFilterManager:
                         self.filteredArrays[ind] = filteredArray
                         self.filteredArraysTimeValues[ind] = filteredArrayTimes
                 # In this case, the input data falls directly following the currently stored data, so this is a simple
-                # appending process. This is the most desireable situation where new data given is immediatly follows
+                # appending process. This is the most desirable situation where new data given is immediatly follows
                 # the formally given data.
                 else:
                     self.filteredArrays[ind] = numpy.hstack((self.filteredArrays[ind], filteredArray))  # Filtered spike train
@@ -975,7 +1034,7 @@ class condInenFuncFilterManager:
         # Itearte over all the neuron / filter combinations saved in self.neuronToFilter
         for ind in range(self.numbStepsToStore.size):
             dStps = self.numbStepsToStore[ind] # The number of time-steps we want to save in the filtered arrays.
-            if dStps>0:
+            if dStps > 0:
                 self.filteredArrays[ind] = self.filteredArrays[ind][-dStps:]
                 self.filteredArraysTimeValues[ind] = self.filteredArraysTimeValues[ind][-dStps:]
             else:
@@ -1046,10 +1105,13 @@ class condInenFuncFilterManager:
         smallest sizes possible as denoted by the value stored in self.filtersBackUpTime, that is each filter
         (self.filters) has a filter-backup time (self.filterBackupTime) that denotes this amount of time.
 
+        This function will ONLY keep the data from [endTime-filterBackupTime, endTime].
+
         :return: N/A
         '''
         for ind, filtInd in enumerate(self.neuronToFilter[:, 2]):
             self.spikeTrainMemory[ind] = self.spikeTrainMemory[ind][self.spikeTrainMemory[ind] >= endTime-self.filtersBackUpTime[filtInd]]
+            self.spikeTrainMemory[ind] = self.spikeTrainMemory[ind][self.spikeTrainMemory[ind] <= endTime]
 
 
     def clearSpikeTrainMemory(self, ind, startTime=0., stopTime=-1):
@@ -1077,11 +1139,29 @@ class condInenFuncFilterManager:
                 self.spikeTrainMemory[ind] = numpy.delete(self.spikeTrainMemory[ind], timeCorrectedInds[0])
 
 
+    def clearAllMemory(self):
+        """
+        DESCRIPTION
+        Here we simply clear out all the memory and restart
+        :return:
+        """
+        self.initFilterRecorders()
+
 
 class condItenFuncManager:
     """
     DESCRIPTION
-    Class: manages all the conditional intensity functions for all the given neurons.
+    The class is an overarching class that works a level above the classes condInenFuncFilterManager and conItenFunc.
+    This is the class that sends data between the two of them and handles high level operations.
+
+    GENERAL USE GUIDE
+    (1) Create new CIFs for neurons by calling self.addNewFilter(). This will internally handle creating the neuron's
+        CIFs and handling all filter/function operations.
+    (2) Initialize filter recorders by calling self.initFilterRecorders(), which will initialize all the necessary
+        internal structures to save and store data.
+    (3) Input new data from simulation using self.parseNewSpikeTrainData()
+    (4) Prepare data for use in prediction of CIF updates using self.prepareParsedData()
+    (5) ... call individual CIFs to update coefficients or make predictions .... this should be automated eventually
 
     KNOWN PROBLEMS:
     (1) july-7-2016: I think the way I give indicate start and stop time does not make sense... needs to be checked. In
@@ -1092,13 +1172,15 @@ class condItenFuncManager:
                      then from for one dt=.001ms, then I will only have data from 1-time-step which is annotated as
                      time-step 0,
                      ... this might be fixed,
+    (2) July - 2016: I need to unify how dt is given in this whole thing.
     """
 
 
     def __init__(self, dt):
         """
-        DESCRIPTION
-        This is a class that manages all of the conditional intensity functions for all the neurons.
+        self.filterManager: and instantiation of the condInenFuncFilterManger class
+        self.condIntenFunctions: a list which will store all the conItenFunc class objects
+        self.dt: double, the time-step we want to use for the CIFs
         """
         # An instantiattion of the filter-manager class
         self.filterManager = condInenFuncFilterManager()
@@ -1112,11 +1194,13 @@ class condItenFuncManager:
     def getNeuronCifObj(self, neuronGroup, neuronId):
         """
         DESCRIPTION
-        Determine if a particular neuron, denoted by its 'neuronGroup' and 'neuronId', is represented in
-        self.condIntenFunctions
+        Determine if a particular neuron, denoted by its 'neuronGroup' and 'neuronId', has a CIF object within the list
+        self.condIntenFunctions.
+
         :param neuronGroup: integer >= 0
         :param neuronId: interger >= 0
-        :return: the conItenFunc class instantiatition if it exists
+
+        :return: a list of objects, that may be empty if no CIF matches the given input
         """
         subList = [x for x in self.condIntenFunctions if x.neuronGroup==neuronGroup and x.neuronId==neuronId]
         return subList[0]
@@ -1127,9 +1211,11 @@ class condItenFuncManager:
         DESCRIPTION
         Determine if the given neuron (neuronId) from a particular neuron-group (neuronGroup) has a CIF class object
         instantiated
-        :param neuronGroup:
-        :param neuronId:
-        :return:
+
+        :param neuronGroup: integer, the neuron-group the neuron is within
+        :param neuronId: integer, the neuron ID
+
+        :return: True -or- False
         '''
         subList = [x for x in self.condIntenFunctions if x.neuronGroup==neuronGroup and x.neuronId==neuronId]
         if len(subList)==0:
@@ -1140,6 +1226,15 @@ class condItenFuncManager:
 
 
     def createNeuronCifObj(self, neuronGroup, neuronId, dt):
+        """
+        DESCRIPTION
+        Create a new CIF function object for some neuron.
+
+        :param neuronGroup: integer, the neuron-group the neuron is within
+        :param neuronId: integer, the neuron ID
+        :param dt: double, time-step we want to use for the CIFs
+        :return: the CIF object created, the last instantiation of conItenFunc in the self.condIntenFunctions list
+        """
         self.condIntenFunctions.append(conItenFunc(neuronGroup, neuronId, dt))
         return self.condIntenFunctions[-1] #Return the last created cifObj, which is the one we last created.
 
@@ -1147,10 +1242,11 @@ class condItenFuncManager:
     def addNewFilter(self, newFilter):
         '''
         DESCRIPTION
-        Adds a newfilter to a perscribe set of neurons. More specifically, the input (see input description below)
-        describes a type of filter/function for a CIF, for a neuron or neurons. The class here then alters or addusts
-        its list of CIF objects (self.condIntenFunctions) and its filter-manager object (self.filterManager). Quickly
-        we will outlien the process,
+        Adds a new function to neurons. More specifically, the input (see input description below)
+        describes a type of filter/function for a CIF, for a neuron or neurons. The class here then alters or adusts
+        its list of CIF objects (self.condIntenFunctions) and its filter-manager object (self.filterManager).
+
+        We will outline the process,
         (1) Iterates over the given neurons in the 'newFilter' input
         (2) Checks to make sure the neuron has its own CIF object using the functions self.doesNeuronHaveCifObj,
             self.getNeuronCifObj, and self.createNeuronCifObj
@@ -1176,7 +1272,11 @@ class condItenFuncManager:
                ['gausLinSelf', a, b, c, timeLength, dt, timeDelay]
                ['gausLinSyn', otherNeuronGroup, otherNeuronId, a, b, c, timeLength, dt, timeDelay]
                ['gausQuadSynSelf', otherNeuronGroup, otherNeuronId, a, b, d, timeLength, dt, timeDelaySelf, timeDelayOther]
-        :return: Nothing retuned
+
+        TODO:
+        (1) Add actual quadratic functions, they are currently not implemented
+
+        :return: N/A
         '''
         # Iterate over the nerouns (neuronIds) in the given neuron-group (neuronGroup)
         for neuId in newFilter[2]:
@@ -1240,7 +1340,7 @@ class condItenFuncManager:
                         # This particular filter function for this neuron does not exist. It does not mean the filter
                         # does not alreayd exist however. But we can simply call the one function to take care of
                         # of this problem...
-                        outVals0 = self.filterManager.addFilter( ['gaussian', newFilter[3], newFilter[4], newFilter[4],
+                        outVals0 = self.filterManager.addFilter( ['gaussian', newFilter[3], newFilter[4],
                                                                   newFilter[5], newFilter[6], newFilter[7], tDelay])
                         # Now we have to indicate that this neuron is going to be filtered, to do this we only have to
                         # call the "adding" function which will resolve any problems automatically (no duplicates)
@@ -1261,26 +1361,31 @@ class condItenFuncManager:
     def parseNewSpikeTrainData(self, listOfSpikeObjs, listOfNeuronGroups, startTime, endTime):
         """
         DESCRIPTION
-        This method is (1) simply pushes the input data the filter-manager class (self.filterManger), which will
-        automatically filter the data, and store it in the correct form, and (2) indicate to the CIF objects that new
-        data is available to to used to predict spikes and used to train and update CIR coefficients.
+        This method (1) pushes the input data the filter-manager class (self.filterManger) by calling
+        self.filterManger.filterSpikeTrainData(), which will automatically filter the data, and store it in the correct
+        form inside self.filterManager, and (2) indicate to the CIF objects that new data is available to to used to
+        predict spikes and used to train and update CIR coefficients.
 
-        :param listOfSpikeObjs:
-        :param listOfNeuronGroups:
-        :param startTime:
-        :param endTime:
-        :return:
+        :param listOfSpikeObjs: list of brian2.SpikeMonitor objects
+        :param listOfNeuronGroups: a list corresponding to listOfSpikeObjs group-IDs, this tells us where each
+            SpikeMonitor object is from
+        :param startTime: the start-time from where we want to begin looking at or adding data
+        :param endTime: the end-time from where the simulation ended or where we do not want to include data from. Note
+            the end-time is not included as a time-step in any of the functions or methods.
+
+        :return: N/A
         """
         # FIRST, give the data to the spike train-manager to let it parse through the data, and filter what it needs to.
         self.filterManager.filterSpikeTrainData(listOfSpikeObjs, listOfNeuronGroups, startTime, endTime)
         # SECONDLY, now the spikes of the neurons need to be reflected in each of the CIF objects. This is done by by
         # iterating over the conditional intensity functions objects stored in the the list, self.condIntenFunctions
+        t0 = time.clock()
         for cifObj in self.condIntenFunctions:
             # Determine if and where our neurons are represented.
             if cifObj.neuronGroup in listOfNeuronGroups:
                 spkObjInd = listOfNeuronGroups.index(cifObj.neuronGroup)
                 spkObj = listOfSpikeObjs[spkObjInd]
-                # 'spkObj' is a brian2.SpikeMonitor object. It may have spike tiems that preceede 'startTime'. As such
+                # 'spkObj' is a brian2.SpikeMonitor object. It may have spike times that precceedes 'startTime'. As such
                 # only consider those times >= startTime and <= endTime, and lastly are the neuron we are looking for
                 timeCorrectedInds = numpy.where((spkObj.t>=startTime) & (spkObj.t<=endTime) & (spkObj.i==cifObj.neuronId))
                 if timeCorrectedInds[0].size>0:
@@ -1292,13 +1397,17 @@ class condItenFuncManager:
                 # self.dt.
                 cifObj.appendSpikeArray(spikeTimes, startTime, endTime, self.dt)
 
+        totalTime = time.clock() - t0
+        outStr = "\nThe total time to store data in CIFs = " + str(totalTime)
+        #print(outStr)
 
     def prepareParsedData(self):
         """
         DESCRIPTION
-        This method gives the fitlered data stored in the filter-manager and gives it to the CIF objects such that they
-        can ... predict spikes
-        :return:
+        This method individually iterates through the CIFs and prepares data to be used for prediction or coefficient
+        updates.
+
+        :return: N/A
         """
         for cifObj in self.condIntenFunctions:
             # Now that all the data is given to the cifObj, now we want to prepare the data for prediction
@@ -1312,13 +1421,42 @@ class condItenFuncManager:
         all the CIFs considered are stored here in this class within self.condIntenFunctions, (2) all the training data
         used is already given and stored in self.filterManager.filteredArrays and all feasible data there will be used.
 
+        IMPORTANT, make sure to call self.prepareParsedData() first as that is needed to run this method.
+
         :param iterations: how many times do we want to iterate over the given data
-        :param method:
-        :param learningRate:
-        :return:
+        :param method: not used now, but in the future should be implemented if we should want to have different
+            coefficient updating methods.
+        :param learningRate: SGD learning rate
+
+        :return: N?A
         """
         for cifObj in self.condIntenFunctions:
             cifObj.updateCifCoeffsSGD(learningRate)
+
+
+    def garbageCollect(self, endTime):
+        """
+        DESCRIPTION
+        This is a general garbage collection routine that is meant to be run after each time we (1)
+        parseNewSpikeTrainData and (2) prepareParseData, and (3) learnCifCoeffs or predict spikes. Then this can be run
+        which will dump all the data in the CIF objects and just hold onto the necessary data in the filter array's
+        assuming the next data that will be given is from the next time steps in the simulation.
+        :return:
+        """
+        self.filterManager.garbabgeCollectFilteredArrays()
+        self.filterManager.garbageCollectSpikeTrainMemory(endTime)
+        for cifObj in self.condIntenFunctions:
+            cifObj.clearSpikeArray()
+
+
+    def clearMemory(self):
+        """
+
+        :return:
+        """
+        self.filterManager.clearAllMemory()
+        for cifObj in self.condIntenFunctions:
+            cifObj.clearSpikeArray()
 
 
     def diagnosticCheckNeuronAndFilterCombs(self):
@@ -1344,7 +1482,7 @@ class condItenFuncManager:
             # Which neurons have CIF objects
             print("Displaying neuron and neuron-group combinations ...")
             for i in self.condIntenFunctions:
-                print("... Neuron",i.neuronId," of Neuron-Group",i.neuronGroup)
+                print("... Neuron", i.neuronId, " of Neuron-Group", i.neuronGroup)
             # Look at what functions each CIF has
             print(" ")
             print("Looking at cifs for each neuron stored ... ")
@@ -1536,7 +1674,7 @@ if __name__ == "__main__":
         plt.plot(cifObj.spikeTimeArray[-cifObj.dataMatrix.shape[0]:], cifObj.spikeArray[-cifObj.dataMatrix.shape[0]:], '--', linewidth=3.0)
         # Generate initial predictions, and plot them
         probs = cifObj.generateSpikeProbabilities()
-        plt.plot(cifObj.spikeTimeArray[-probs.size:],probs)
+        plt.plot(cifObj.spikeTimeArray[-probs.size:], probs)
         #Iteritively train using SGD method
         for i in range(trainIterations):
             cifObj.updateCifCoeffsSGD(.01)

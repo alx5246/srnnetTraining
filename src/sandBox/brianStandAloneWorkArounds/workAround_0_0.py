@@ -18,7 +18,7 @@ import numpy.matlib
 
 #Setting up the C++ compilation, left as default which is build on run.
 #set_device('cpp_standalone', directory='workAround_0_0_Comp')
-set_device('cpp_standalone', directory='myTurorial_2_Izhecevich_2_Comp', build_on_run=False)
+set_device('cpp_standalone', directory='myTurorial_2_Izhecevich_2_Comp', build_on_run=True)
 
 ########################################################################################################################
 # Setting up Multiple Simulations
@@ -70,6 +70,9 @@ G = NeuronGroup(iterationNumber, model=nurEqs, threshold='v > 30.', reset=resetE
 
 P = PoissonGroup(100, numpy.arange(100)*.2*Hz + .2*Hz)
 
+
+
+
 ########################################################################################################################
 # STDP + Homeostatis Synapses
 ########################################################################################################################
@@ -118,17 +121,20 @@ S.alpha = iterationValues
 #print(S.alpha)
 
 #Set the weights
-#vectWeights = numpy.linspace(start=1.0,stop=3.0,num=100)
-#S.w = vectWeights #USE STRINGS IN COMPILED VERSION
-S.w = 2.0
+vectWeights = numpy.linspace(start=1.0, stop=3.0, num=1000) #THIS SEEMS TO BE WORKING IN COMPILED VERSION
+vectWeights[0] = 2.0
+vectWeights[1] = 2.5
+vectWeights[2] = 3.0
+S.w = vectWeights #USE STRINGS IN COMPILED VERSION
+#S.w = 2.0
 
 ########################################################################################################################
 # Monitors
 ########################################################################################################################
 
 #M0 = SpikeMonitor(P)
-M1 = StateMonitor(S,['R_hat'],record=[0,1,2,3,4,5,6,7])
-M2 = StateMonitor(S,['w'],record=[0,1,2,3,4,5,6,7])
+M1 = StateMonitor(S, ['R_hat'], record=[0,1,2,3,4,5,6,7])
+M2 = StateMonitor(S, ['w'], record=[0,1,2,3,4,5,6,7])
 #M2 = StateMonitor(S,['alpha'],record=[0,100,200,300])
 #M2 = StateMonitor(S,'w',record=numpy.arange(100))
 #M2 = StateMonitor(S,['w','K',],numpy.arange(100), dt=500*ms)
@@ -140,8 +146,10 @@ M2 = StateMonitor(S,['w'],record=[0,1,2,3,4,5,6,7])
 ########################################################################################################################
 
 #run(500*second)
-run(600*second, report='text')
+run(50*second, report='text')
 
+print(type(S.w))
+print(S.w)
 
 ########################################################################################################################
 # Plot
@@ -161,6 +169,7 @@ plt.subplot(616)
 plt.plot(M1.t, M1.R_hat[5], '-b')
 
 plt.figure(2)
+plt.subplot(611)
 plt.plot(M2.t, M2.w[0], '-b')
 plt.subplot(612)
 plt.plot(M2.t, M2.w[1], '-b')

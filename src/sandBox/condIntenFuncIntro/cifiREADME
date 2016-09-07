@@ -14,3 +14,5 @@ FILES AND FOLDERS
     We will have a set of files that each do important tasks
 
     condIntenFunc_0_0 : this will have functions in it to generate spike times inputs
+
+    condIntenFunc_0_3 : has functions and classes needed to calculate and learn the conditional intensity functions

@@ -2,7 +2,7 @@
 # June 2016
 #
 # DESCRIPTION
-#   Here are functions to create and annoate some network, this is done to keep track of a network and its configuration
+#   Here are functions to create and annotate some network, this is done to keep track of a network and its configuration
 #   if we need to reinstantiate it later.
 
 import numpy
@@ -52,10 +52,12 @@ def createConnectionProb(net1, net2, probGenerator):
     Given some function and two networks, this thing will produce an array of the probability of connection between
     neurons.
 
-    :param net1:
-    :param net2:
-    :param probGenerator:
-    :return: numpy.ndarray of size net1.shape[0] X net2.shape[0], values over [0., 1.] (given input function)
+    :param net1: 2D numpy.array, with [ [neuronID, x-position, y-position, z-postion]...]
+    :param net2: 2D numpy.array, with [ [neuronID, x-position, y-position, z-postion]...]
+    :param probGenerator: a python function that takes as input [x, y, z, x, y, z] and returns probability of connection
+        from net1 neuron to net2 neuron
+
+    :return: 2D numpy.ndarray of size net1.shape[0] X net2.shape[0], values over [0., 1.] (given input function)
     '''
 
     connectionProb = numpy.zeros((net1.shape[0], net2.shape[0]))
@@ -73,14 +75,17 @@ def createConnectionArray(layerProb, groupId1, groupId2):
     Given some connection probabilities, we will actually generate the connections and output what those connections
     actually are!
 
-    :param layerProb: the probability [0.0, 1.0] of drawing an actual synaptic connection between two neurons
-    :groupId1: int, the group the presynaptic neuron is within
-    :groupId2: int, the group the postsynatic neuron is within
-    :return: numpy.ndarray, nX4, in each row [presynaptic
+    :param layerProb: 2D numpy.array, nXm where n = number of neurons in groupId1, and m = number of neurons in groupId2
+        where each index stors teh probability of connectionfrom neuron i to neuron j
+    :param groupId1: int, the group the presynaptic neuron is within
+    :param groupId2: int, the group the postsynatic neuron is within
+
+    :return: numpy.ndarray, nX4, in each row [[presynaptic Neuron ID, postsynaptic neuron ID, presynatpic neuron group,
+        postsynaptic neuron group] ...]
     '''
 
     # Inital array where we store the connections bits.
-    connectionArray = numpy.zeros((layerProb.shape[0],layerProb.shape[1]), dtype=int)
+    connectionArray = numpy.zeros((layerProb.shape[0], layerProb.shape[1]), dtype=int)
 
     # Fill connectionArray with ones on a probabilistic basis
     for i in range(layerProb.shape[0]):
@@ -120,7 +125,7 @@ if __name__ == "__main__":
 
     print("Making second network ...")
     print("   Printing out sescond network")
-    mySecondNet = createNetLayer(2,2,0)
+    mySecondNet = createNetLayer(2, 2, 0)
     print(  mySecondNet)
     print("\n")
 
