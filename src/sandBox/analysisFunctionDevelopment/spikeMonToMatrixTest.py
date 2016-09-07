@@ -55,6 +55,7 @@ spikeTimes, spikeTimesUnits = manager.query(
 # spikeTimesUnits = pickle.load(inputFile)
 # inputFile.close()
 # print (spikeTimes)
+# print (len(spikeTimes))
 
 # Input spike times indices,
 # inputFile = open("savedData_0/netOutput0_PoiNeu_SpikesInds.pkl","rb")
@@ -62,9 +63,17 @@ spikeTimeInds = manager.query(
     {'measuredVariable': 'Neu_i'},
     hook=getDataOut
 )[0]
-# spikeTimeInds = pickle.load(inputFile)
-# inputFile.close()
 # print (spikeTimeInds)
+# print (len(spikeTimeInds))
+
+
+alpha = manager.query(
+    {'paramters': 'alpha'},
+    hook=getDataOut
+)
+
+# print (alpha)
+
 
 
 assert(len(spikeTimeInds) == len(spikeTimes))
@@ -78,7 +87,14 @@ for simulationIndex in range(0, len(spikeTimeInds)):
     # nSpike = len(spikeCount)
     # nTime = time_len = (len(time))
     print (NeurFire)
-#
+
+
+
+
+
+
+
+
 # nump_hist = plt.figure()
 # plt.hist(spikeCount, bins = time)
 # plt.figure(1)
