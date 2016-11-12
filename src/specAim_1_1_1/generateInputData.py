@@ -149,7 +149,7 @@ def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmp
         fig = plt.figure(2)
         ax = Axes3D(fig)  # Because I am using older version
         verts = []
-        for j in range(gCenters.size):
+        for j in range(dataOut[1].size):
             segmentedValues[0, j] = 0
             segmentedValues[-1, j] = 0
             # print(list(zip(segmentedValues[:,i],dArray)))
@@ -172,13 +172,45 @@ def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp0
     :return: N/A we save the results
     """
 
+    # I need to set the mechanism of spike generation! We could do it in a number of ways. For example by time-rescaling
+    # For time-rescaling I am relying on the algorithms presented by Brown et al. "The TimeRescaling
+    # Theorem and Its Application to Neural Spike Train Analysis" (2001) and their simple algorithm to make spikes. NOTE,
+    # this is meant to handle making data look like it is generated from Poisson process, so there is a measure of
+    # stochasticity involved here. Use another function if this is not wanted. Alternatively I have just linearly make
+    # spikes based on inegrating each analog signal.
+    #
+    # I need to fill in the data here below, (Hardcoding) in order to determing what type of thing I am doing.
+    #
+    # Fill in spikeGenType: tells us which spike generation optiont to call. The options are "linearIntegral" or
+    # "timeRescale"
+    spikeGenType = "linearIntegral"
+    # Fill in the
+
+    # Load the data back (this is the decomposed version of the 1D moving mass data)
+    inputDataFile = open(dataFile, "rb")
+    dataOut = pickle.load(inputDataFile)
+    inputDataFile.close()
+    segmentedTrials = dataOut[0] # list of numpy.arrays(time-steps X numb. decomps) of the decomposed 1D signal
+    gCenters = dataOut[1]  # The centers of the Gaussaians
+    b = dataOut[2]
+    origFileName = dataOut[3]
+
+    # I need to load the original filename to get the value of 'dt'
+    inputDataFile = open(origFileName, "rb")
+    origDataOut = pickle.load(inputDataFile)
+    inputDataFile.close()
+    dt = origDataOut[7]
 
 
 ########################################################################################################################
 # RUNNING METHODS
 ########################################################################################################################
+# Some the methods will be used to create acutal data and some will be used for testing. The differentiation will be
+# given.
 
 if __name__ == "__main__":
+
+    print('Begin testing ... ... \n\n')
 
     # CREATE AND SAVE SOME 1D MOVING MASS DATA
     #genAndSaveMoving1DMassData()
@@ -190,4 +222,5 @@ if __name__ == "__main__":
     # DECOMPOSE 1D MOVING MASS DATA
     #decomposeMoving1DMassData()
 
-    loadAndPlotDecomp1DMassData()
+    # PLOT THE 1D MOVING MASS DATA AND THE DECOMPOSITION OF SAID DATA
+    #loadAndPlotDecomp1DMassData()
