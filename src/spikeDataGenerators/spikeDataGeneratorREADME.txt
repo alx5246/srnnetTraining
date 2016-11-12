@@ -5,7 +5,9 @@ README for folder spikeDataGenerator
 
 DESCRIPTION
 
-    Here we have methods and classes necessary to take analog data and convert to spike trains.
+    Here we have methods and classes necessary to take analog data and convert to spike trains. IMPORTANTLY, no source
+    data (ie 1D moving mass) is created here. The methods within here are specifically for transferrence of analog data
+    into different domains (ie smooth analog into multiple receptive fields into spike trains0
 
 FILES AND FOLDERS
 
