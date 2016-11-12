@@ -49,6 +49,24 @@ def genAndSaveMoving1DMassData(saveName='movingPointMassData/pointMassData000.pk
     pickle.dump(toSave,outputFile)
     outputFile.close()
 
+def loadAndPlot1DMassData(dataFile='movingPointMassData/pointMassData000.pkl'):
+    """
+    DESCRIPTION
+    We load in some of the saved data from 1D moving mass, and then plot what those trajectories look like. This method
+    is given primarily as a means of debugging and checking.
+    :param dataFile: The file where the 1D mass movement data is stored.
+    :return: N/A we just plot stuff out.
+    """
+    # Load the data back
+    inputDataFile = open("movingPointMassData/pointMassData000.pkl", "rb")
+    dataOut = pickle.load(inputDataFile)
+    inputDataFile.close()
+    # Iterate over the different saved trajectores and plot out the results.
+    for i in range(len(dataOut[0])):
+        plt.figure(i)
+        plt.plot(dataOut[0][i][1],dataOut[0][i][0])
+    plt.show()
+
 def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl', saveName='movingPointMassData/pointMassDataDecmp000.pkl' ):
     """
     DESCRIPTION
@@ -93,6 +111,16 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     outputFile.close()
 
 
+def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp000.pkl', saveName='movingPointMassData/pointMassDataDecmpSpikes000.pkl'):
+    """
+    DESCRIPTION
+    We load in the saved data, the decomposition of 1D moving mass data over n receptive feilds, and then convert each
+    receptive field output into a set of spike trains.
+    :param dataFile: string, the location where we have the decomp. data from the 1D movements stored.
+    :param saveName: string, the location where we want to store the spiking version of the decomped data.
+    :return: N/A we save the results
+    """
+
 
 
 ########################################################################################################################
@@ -102,17 +130,11 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
 if __name__ == "__main__":
 
     # CREATE AND SAVE SOME 1D MOVING MASS DATA
-
     #genAndSaveMoving1DMassData()
-    # Load the data back
-    #inputFile = open("movingPointMassData/pointMassData000.pkl", "rb")
-    #dataOut = pickle.load(inputFile)
-    #inputFile.close()
-    #for i in range(len(dataOut[0])):
-    #    plt.figure(i)
-    #    plt.plot(dataOut[0][i][1],dataOut[0][i][0])
-    #plt.show()
+
+    # PLOT THE CREATED AND SAVED DATA
+    # We simply want to make sure that we are making what we are expecting.
+    loadAndPlot1DMassData()
 
     # DECOMPOSE 1D MOVING MASS DATA
-
-    decomposeMoving1DMassData()
+    #decomposeMoving1DMassData()
