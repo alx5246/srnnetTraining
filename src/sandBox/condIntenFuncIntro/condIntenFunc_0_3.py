@@ -5,11 +5,8 @@
 #   This python file will have methods to create and train the conditional intensity functions that we use to predict
 #   the spiking of the neurons.
 #
-#   A generic outline of how to use the classes and functions here are as follows,
-#   (1) Create a "condItenFucManager" object : this class internally instantiates a "condInenFuncFilterManger" object
-#       as self.filterManger which handles all the different filters, and a self.condIntenFunctions list which will
-#       store all the condition-intensity-function objects. ....
-#   (2) ...
+# WHAT IS STORED IN THIS FILE
+#   (1) Function Generators: The first methods are functions to generate the functions that end up being the discrete
 #
 # PROBLEMS
 #   (1) August 4, 2016: I am using numpy.arange() a number of times below, and there are rounding errors associated with
@@ -163,7 +160,7 @@ def convolveSpikeTimesWthBackUp(convVector, spikeTimes, startTime, stopTime, dt,
 
 
 ########################################################################################################################
-# CLasses
+# CLASSES
 ########################################################################################################################
 # Below all the classes are provided to
 
@@ -176,7 +173,7 @@ class conItenFunc:
     CIF) and stores an array indicating which filtered data in some condInenFuncFilterManager (see class below) to get
     data from.
 
-    General guidelines on useage:
+    GENERAL USE GUIDELINES:
     (1) Add functions to the CIF object: typically after an object of this class is created, you can add the functions
         that comprise the GLM suing the self.addFunction() method. A CIF as it is here described is a GLM that is passed
         through a logistic function. Every time one uses self.addFunction() method you are adding another linear
@@ -253,13 +250,14 @@ class conItenFunc:
         """
         DESCRIPTION
         Indicates if the given "newFunctionType", which is a list of values that describes the function/filter, is
-        alreayd specified for this particular CIF instantiation.
+        already specified for this particular CIF instantiation.
 
         :param newFunctionType: any of the acceptable lists for the self.functionType list, and are repeated below,
                                 ['bias']
                                 ['gausLinSelf', a, b, c, timeLength, dt, timeDelay]
                                 ['gausLinSyn', otherNeuronGroup, otherNeuronId, a, b, c, timeLength, dt, timeDelay]
                                 ['gausQuadSynSelf', otherNeuronGroup, otherNeuronId, a, b, d, timeLength, dt, timeDelaySelf, timeDelayOther]
+
         :return: True, False
         """
         dummyVal = False

@@ -1,8 +1,11 @@
 # A. Lonsberry
+# September 2016 - from sandbox with additional methods added.
 #
 # DESCRIPTION
-#   This python file will have method(s) to create arrays of spike times that can be used as input to some simulations.
-
+#   This python file will have method(s) to create arrays of spike-times. All the methods here within are desgined to
+#   take input data (generally being 1D or higher analog data) and then turn this into spike trains. This transformation
+#   can take place in a number of ways, one being we take the analog input and assume it is a rate and then sample
+#   as through from a Poisson process.
 
 import math
 import random
@@ -14,12 +17,10 @@ def poissonSpikeGen(rateArray, timeArray):
     Creates a 1-D python list of spike times between timeArray[0] and timeArray[-1]. The times are created by Poisson
     process given a rate function(s) that are input. In the case here the rate functions are specified for
     time-intervals given in the input 'timeArray'.
-
     EXAMPLE
     Given (1) three time intervals 1.0 to 2.5 seconds, 2.5 seconds to 3.5 seconds, and 3.5 seconds to 7.0 seconds, and
     (2) the rates over those time-intervals 1.0 Hz, 3.0Hz, and 4.0Hz, the input to this functoin is given as
     rateArray = [1., 3., 4.] and timeArray = [1.0, 2.5, 3.5, 7.0].
-
     :param rateArray: python 1-D list, of rate values over time intervals
     :param timeArray: pthon 1-D list, with time intervals of constant rates
     :return: python 1-D list, of spike times
@@ -124,6 +125,70 @@ def multiPoissonStreams(numPoiStreams, startTime, stopTime, rateBounds, interval
     return outputArray
 
 
+def genSpikesWithTimeRescaling(xData, dt, scaling=1.0):
+    """
+    DESCRIPTION
+    Given some analog data, here this is turned into a set of spike trains. To do this we rely on the time rescaling
+    work other people have been doing. I here am relying on the algorithms presented by Brown et al. "The TimeRescaling
+    Theorem and Its Application to Neural Spike Train Analysis" (2001) and their simple algorithm to make spikes. NOTE,
+    this is meant to handle making data look like it is generated from Poisson process, so there is a measure of
+    stochasticity involved here. Use another function if this is not wanted.
+    :param xData: 2D numpy.array of size [n,m], where n is a complete time-series, and m is the number of different signals
+    :param dt: the time discritization
+    :param scaling: float, if we want to scale up the input
+    :return: list []
+    """
+    # Iterate over all the different input signals
+    outputSpikeTrains = []
+    for i in range(xData.shape[1]):
+        # Initialize an empty 'spikeTrain', the current-sum (holds value of integral), and a random sample from an
+        # exponential distribution
+        spikeTrain = []
+        currSum = 0.
+        tau = numpy.random.exponential()
+        # Iterate and integrate over the data
+        for j in range(xData.shape[0]):
+            if currSum >= tau:
+                spikeTrain.append((j+1)*dt)
+                tau = numpy.random.exponential()
+                currSum = xData[j,i]*dt*scaling
+            else:
+                currSum += xData[j,i]*dt*scaling
+        # Save the new spike train to the output
+        outputSpikeTrains.append(spikeTrain)
+    return outputSpikeTrains
+
+
+def genSpikesLinearly(xData, dt, scaling=1.0):
+    """
+    DESCRIPTION
+    Given some analog data, here this is turned into a set of spike trains. This is essentially a time-recalling
+    algorithm, expect we do not draw from a random distribuiton. That is we integrate until we get to unity.
+    :param xData: 2D numpy.array of size [n,m], where n is a complete time-series, and m is the number of different signals
+    :param dt: the time discritization
+    :param scaling: float, if we want to scale up the input
+    :return: list []
+    """
+    # Iterate over all the different input signals
+    outputSpikeTrains = []
+    for i in range(xData.shape[1]):
+        # Initialize an empty 'spikeTrain', the current-sum (holds value of integral), and a random sample from an
+        # exponential distribution
+        spikeTrain = []
+        currSum = 0.
+        tau = 1.
+        # Iterate and integrate over the data
+        for j in range(xData.shape[0]):
+            if currSum >= tau:
+                spikeTrain.append((j+1)*dt)
+                tau = 1.
+                currSum = xData[j,i]*dt*scaling
+            else:
+                currSum += xData[j,i]*dt*scaling
+        # Save the new spike train to the output
+        outputSpikeTrains.append(spikeTrain)
+    return outputSpikeTrains
+
 ########################################################################################################################
 # Internal Unit Testing
 ########################################################################################################################
@@ -142,3 +207,6 @@ if __name__ == "__main__":
     #Test (2)
     spikesArray = multiPoissonStreams(3, startTime=0.0, stopTime=10.0, rateBounds=[1., 5.], intervalBounds=[1., 3.])
     print(spikesArray)
+
+
+
