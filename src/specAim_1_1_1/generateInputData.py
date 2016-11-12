@@ -53,7 +53,7 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     """
     DESCRIPTION
     This is made to take 1D point mass trails, given the file name is given, and then subseqently make normal functions
-    to decompose the original 1D doamin, and then actually decompose the domain, and then save the results
+    to decompose the original 1D doamin, and then actually decompose the domain, and finally save the results.
     :param dataFile: string, the location where we have the data stored
     :param saveName: string, the location where we want to save the results
     :return: N/A (we save data to a file), the list saved is [list of segmented 1D trails (numpy.arrays), gCenters (
@@ -67,7 +67,7 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     trackedArrays = trackingData[0]
     print(len(trackedArrays))
 
-    # Now we need to generate the Gaussians functions that will be used to decompose the 1D data into seperete parts
+    # Now we need to generate the Gaussian functions that will be used to decompose the 1D data into separate parts
     # that will represent inputs from individual neurons.
     xStart = 0.0
     xStop = 5.0
@@ -101,8 +101,9 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
 
 if __name__ == "__main__":
 
-    # Create and save some data
-    #generateAndSaveMoving1DMassData()
+    # CREATE AND SAVE SOME 1D MOVING MASS DATA
+
+    #genAndSaveMoving1DMassData()
     # Load the data back
     #inputFile = open("movingPointMassData/pointMassData000.pkl", "rb")
     #dataOut = pickle.load(inputFile)
@@ -112,5 +113,6 @@ if __name__ == "__main__":
     #    plt.plot(dataOut[0][i][1],dataOut[0][i][0])
     #plt.show()
 
-    #
+    # DECOMPOSE 1D MOVING MASS DATA
+
     decomposeMoving1DMassData()
