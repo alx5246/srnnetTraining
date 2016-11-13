@@ -52,12 +52,12 @@ class condInenFuncFilterManager:
         self.filtersDt: list of time-step values for each filter, this list should be as long as the self.filters list.
         self.filtersBackUpTime: list of the amount of time we want to include backwards in order to make the filters
             accurate. This inclusion of spikes over some backwards horizon is necessary in order insure the accuracy
-            of the ouput for the interval of time we actually care about.
+            of the output for the interval of time we actually care about.
         self.neuronToFilter: 2D numpy.array, an example row being [ [neuron-group, neuron Id, filterIndex], ... ]
-        self.numbStepsToStore: 2D numpy.array, the number of time-stpes we need to keep for the next time we need to
-            run calculations, essentially this si the maximum delay we need (July 2016, used in garbage collection and
+        self.numbStepsToStore: 2D numpy.array, the number of time-steps we need to keep for the next time we need to
+            run calculations, essentially this is the maximum delay we need (July 2016, used in garbage collection and
             debugging)
-        self.actualDelay: 2D numpy.array, tells us how much dealy each filter has (July 2016, I think this is now only
+        self.actualDelay: 2D numpy.array, tells us how much delay each filter has (July 2016, I think this is now only
             for debugging)
         self.filteredArrays: a list of 1D numpy.array, where in each array has the filtered spike trian as indicated in
             self.neuronToFilter
@@ -88,7 +88,6 @@ class condInenFuncFilterManager:
         Given a filter info, along with either a 'timeDelay' or a 'truncation' we will find if the filter already exists
         and should it exist, this will return the position of the associated filter (a 1D numpy.array) within the list
         of said filters denoted as self.filters.
-
         :param filterInfo: a list of filter information, where the following variants are acceptable,
             ['gaussian', a, b, c, timeLength, dt]
 
@@ -186,13 +185,14 @@ class condInenFuncFilterManager:
         checks to make sure no duplicates are added. Thus, if a filter is specified in the input that is already stored,
         a duplicate will NOT be added.
 
-        This function is NOT preparing of matching neurons with filters. It is simply here to add new filters in needed
-        and not already there. To see how neurons are matched with filters see the methods below,
+        This function DOES NOT handle matching of neurons to filters. It is simply here to add new filters when needed
+        and which not already represented. To see how neurons are matched with filters see the methods below,
         self.addNeuronAndFilter() and self.initFilterRecorders().
 
         An example of 'filterInfo is ['gaussian', a, b, c, timeLength, dt, timeDelay]. Now remember, there maybe more
         self.filterIdentities than actual self.fitlers. This is because many of those filters described in the
-        self.filterIdentities are actually produce the same output just delayed by different time-steps!
+        self.filterIdentities are actually produce the same output just delayed by different time-steps (The filters
+        have the same shape)!
 
         Some quick notes on time-delays, time-lengths, and truncations. A filter (as of the time of this writing July
         2016) has a timeLength which is 1/2 of the filter length. If we assume the filter is centered at some origin,
@@ -208,7 +208,7 @@ class condInenFuncFilterManager:
         :param filterInfo: a list of filter information, where the following variants are acceptable,
             ['gaussian', a, b, c, timeLength, dt, timeDelay]
 
-        :return: list with the folloring values, [truncation, filterIndex, timeStepsDelayed]
+        :return: list with the values, [truncation, filterIndex, timeStepsDelayed]
         """
         if filterInfo[0]=='gaussian':
             # First determine the number of time-steps we need to look backwards in memory of the filtered spike-trains.

@@ -13,4 +13,4 @@ FILES AND FOLDERS
     (1) cifAnalysisMethods.py
         This python file has methods specficially for analysis of conditional intensity functions. More generally these
         methods can include methods to quantize and measure the functional performance of the CIF to predict and capture
-        network dynamics as well as methods to to qantize computational complexity. 
+        network dynamics as well as methods to to qantize computational complexity.
