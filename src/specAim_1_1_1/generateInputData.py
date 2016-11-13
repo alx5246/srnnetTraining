@@ -7,6 +7,7 @@
 #   decomposed original data, and then spiking from analog)
 
 import matplotlib.pyplot as plt
+import numpy
 
 # I had a difficult time getting things to import, so now I have however, go about fixing this by going up a directoy
 # which I think I can do in the following way.
@@ -18,6 +19,7 @@ sys.path.append(os.path.abspath("../"))
 # Call the python file that has the 1D mass simulator in it.
 from dataGenerators import movingPointMass1D
 from spikeDataGenerators import decompDimensions
+from spikeDataGenerators import analogToSpikes
 
 ########################################################################################################################
 # METHODS FOR CREATING 1D MOVING MASS DATA (SMOOTH, DECOMPOSED, SPIKING)
@@ -67,6 +69,7 @@ def loadAndPlot1DMassData(dataFile='movingPointMassData/pointMassData000.pkl'):
         plt.plot(dataOut[0][i][1],dataOut[0][i][0])
     plt.show()
 
+
 def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl', saveName='movingPointMassData/pointMassDataDecmp000.pkl' ):
     """
     DESCRIPTION
@@ -80,9 +83,9 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     # Load in the saved 1D moving mass. Inside the loaded list of lists, we will have a list that has a bunch of
     # seperate 1D numpy.arrays that represent the position of the mass through different random trials.
     inputFile = open(dataFile, "rb")
-    trackingData = pickle.load(inputFile)
+    trackingData = pickle.load(inputFile) # data in list like [dataOut, xmin, xmax, vmin, vmax, amin, amax, dt, tmax] see genAndSaveMoving1DMassData()
     inputFile.close()
-    trackedArrays = trackingData[0]
+    trackedArrays = trackingData[0] # This is a list of lists where in each we have [ [positionArray, timeArray], [positionArray, timeArray], .... [positionArray, timeArray] ]
     print(len(trackedArrays))
 
     # Now we need to generate the Gaussian functions that will be used to decompose the 1D data into separate parts
@@ -190,7 +193,7 @@ def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp0
     inputDataFile = open(dataFile, "rb")
     dataOut = pickle.load(inputDataFile)
     inputDataFile.close()
-    segmentedTrials = dataOut[0] # list of numpy.arrays(time-steps X numb. decomps) of the decomposed 1D signal
+    segmentedTrialsList = dataOut[0] # list of numpy.arrays(time-steps X numb. decomps) of the decomposed 1D signal
     gCenters = dataOut[1]  # The centers of the Gaussaians
     b = dataOut[2]
     origFileName = dataOut[3]
@@ -200,6 +203,106 @@ def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp0
     origDataOut = pickle.load(inputDataFile)
     inputDataFile.close()
     dt = origDataOut[7]
+
+    # Now make spikes
+    segmentedSpikesList = []
+    if spikeGenType=="linearIntegral":
+        for i in range(len(segmentedTrialsList)):
+            segmentedSpikesList.append(analogToSpikes.genSpikesLinearly(segmentedTrialsList[i], dt=dt, scaling=20.))
+
+    # spikeTrains = analogToSpikes.genSpikesWithTimeRescaling(segmentedValues, dt=.001, scaling=10.)
+    # spikeTrains = analogToSpikes.genSpikesLinearly(segmentedValues, dt=.001, scaling=20.)
+
+    # Save
+    outputList = [segmentedSpikesList, dataFile] # We also want to store the location of the originating decomped data
+    outputFile = open(saveName, "wb")
+    pickle.dump(outputList, outputFile)
+    outputFile.close()
+
+
+def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmpSpikes000.pkl'):
+
+
+    # Load in modules to handle the 3D plot (which I still do not well understand)
+    from matplotlib.collections import PolyCollection as pc
+    from mpl_toolkits.mplot3d import Axes3D
+
+    #Load the data back (this is the spike version of the decomped values)
+    inputDataFile = open(dataFile, "rb")
+    dataOut = pickle.load(inputDataFile) # The saved list from turning decmped signals into spikes, [segmentedSpikeList, dataFileName]
+    inputDataFile.close()
+    segmentedSpikesList = dataOut[0]
+    segmentedValuesFileName = dataOut[1]
+
+    # Load the data back (this is the decomposed version of the 1D moving mass data)
+    inputDataFile = open(segmentedValuesFileName, "rb")
+    dataOut = pickle.load(inputDataFile) # The saved list from decmposing 1D mass movements [segmentedTrialsList, gCenters, b, dataFileName]
+    inputDataFile.close()
+    segmentedValuesList = dataOut[0]
+    gCenters = dataOut[1]  # The centers of the Gaussaians
+    origDataFileName = dataOut[3] # The save list of 1D mass movements
+
+    # Load in the original data (the filename is included in the loaded bit) with is the original 1D analog signal
+    inputDataFile = open(origDataFileName, "rb")
+    dataOut = pickle.load(inputDataFile)  # The original 1D mass movement data [TrailsList, xmin, xmax, vmin, vmax, amin, amax, dt, tmax]
+    inputDataFile.close()
+    massMovementsList = dataOut[0] # The list of original mass movements
+
+    # Now I need to plot these things out, iterate over the original 1D mass data.
+    for i in range(len(massMovementsList)):
+
+        # Plot out the original data
+        plt.figure(1)
+        plt.plot(massMovementsList[i][1], massMovementsList[i][0])
+
+        # Now plot out the decomposed mass movements
+        segmentedValues = segmentedValuesList[i]
+        print(segmentedValues.shape)
+        fig = plt.figure(2)
+        ax = Axes3D(fig)  # Because I am using older version
+        verts = []
+        for j in range(segmentedValues.shape[1]):
+            segmentedValues[0, j] = 0
+            segmentedValues[-1, j] = 0
+            # print(list(zip(segmentedValues[:,i],dArray)))
+            verts.append(list(zip(segmentedValues[:, j], massMovementsList[i][1])))
+        poly = pc(verts)
+        ax.add_collection3d(poly, gCenters, zdir='y')
+        ax.set_xlim3d(0, 1.2)
+        ax.set_zlim3d(0, 5)
+        ax.set_ylim3d(0, 6)
+        #plt.show()
+
+        #Now add spikes that need to be plotted on top as well which will be indicated with black lines
+        verts = []
+        segmentedSpikes = segmentedSpikesList[i]
+        for j in range(len(segmentedSpikes)):
+            if len(segmentedSpikes[j])>0:
+                # Convert the list to a numpy array so we can plot stuff
+                aSpikeTrain = numpy.asarray(segmentedSpikes[j])
+                #
+                x = numpy.zeros(aSpikeTrain.size*3)
+                y = numpy.zeros(aSpikeTrain.size*3)
+                ind = 0
+                for k in range(aSpikeTrain.size):
+                    x[ind] = aSpikeTrain[k]
+                    y[ind] = 0.
+                    ind += 1
+                    x[ind] = aSpikeTrain[k]
+                    y[ind] = 1.
+                    ind += 1
+                    x[ind] = aSpikeTrain[k]
+                    y[ind] = 0.
+                    ind += 1
+                verts.append(list(zip(y,x)))
+            else:
+                # Need to give something to those without spikes or graph does not work out
+                x = numpy.array([0., .001])
+                y = numpy.array([.001, .001])
+                verts.append(list(zip(y, x)))
+        poly = pc(verts)
+        ax.add_collection3d(poly, gCenters, zdir='y')
+        plt.show()
 
 
 ########################################################################################################################
@@ -220,7 +323,12 @@ if __name__ == "__main__":
     #loadAndPlot1DMassData()
 
     # DECOMPOSE 1D MOVING MASS DATA
-    #decomposeMoving1DMassData()
+    # decomposeMoving1DMassData()
 
     # PLOT THE 1D MOVING MASS DATA AND THE DECOMPOSITION OF SAID DATA
     #loadAndPlotDecomp1DMassData()
+
+    # TURN DECOMPOSED 1D MOVING MASS DATA INTO SPIKES
+    #decompedToSpikes1DMassData()
+
+    loadAndPlotDecomp1DMassData()
