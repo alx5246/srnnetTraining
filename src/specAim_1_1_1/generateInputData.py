@@ -313,6 +313,11 @@ def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmp
 
 if __name__ == "__main__":
 
+
+    ####################################################################################################################
+    # TESTING METHODS
+    ####################################################################################################################
+
     print('Begin testing ... ... \n\n')
 
     # CREATE AND SAVE SOME 1D MOVING MASS DATA
@@ -331,4 +336,5 @@ if __name__ == "__main__":
     # TURN DECOMPOSED 1D MOVING MASS DATA INTO SPIKES
     #decompedToSpikes1DMassData()
 
+    # PLOT THE SPIKED VERSIONOF THE DECOMPOSED DATA FOR ACCURACY OF THE APPROACH
     loadAndPlotDecomp1DMassData()

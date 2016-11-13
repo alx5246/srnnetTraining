@@ -8,8 +8,10 @@
 #
 #   An example in MATLAB uses beta = .2, eta=.1, tau=17, n=10, and x(0) = 1.2
 #
+#   This work here remains under construction.
+#
 # PROBLEMS
-#   Some time the discretization is not sufficient, I need to be able to well handle this.
+#   Some time the discretization is not sufficient, I need to be able to well handle this. This
 
 
 import numpy

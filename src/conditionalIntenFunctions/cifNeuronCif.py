@@ -12,7 +12,7 @@ import time
 
 # Also import comiled Code
 #import updateCifCoeffsSGD
-from cythonBuilt import updateCifCoeffsSGD
+from cythonBuilt import updateCifCoeffsSGD #When compiled code is saved within a seperate directory
 
 class condItenFunc:
     """
