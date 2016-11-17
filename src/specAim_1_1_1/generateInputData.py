@@ -51,6 +51,7 @@ def genAndSaveMoving1DMassData(saveName='movingPointMassData/pointMassData000.pk
     pickle.dump(toSave,outputFile)
     outputFile.close()
 
+
 def loadAndPlot1DMassData(dataFile='movingPointMassData/pointMassData000.pkl'):
     """
     DESCRIPTION
@@ -91,8 +92,8 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     # Now we need to generate the Gaussian functions that will be used to decompose the 1D data into separate parts
     # that will represent inputs from individual neurons.
     xStart = 0.0
-    xStop = 5.0
-    nGaus = 10
+    xStop = 20.0
+    nGaus = 40
     bInitial = .05
     dt = 0.001
     cfds = decompDimensions.minVarOverlappingGaussian(xStart, xStop, nGaus, bInitial, dt)
@@ -210,9 +211,6 @@ def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp0
     if spikeGenType=="linearIntegral":
         for i in range(len(segmentedTrialsList)):
             segmentedSpikesList.append(analogToSpikes.genSpikesLinearly(segmentedTrialsList[i], dt=dt, scaling=analgSingnalScaling))
-
-    # spikeTrains = analogToSpikes.genSpikesWithTimeRescaling(segmentedValues, dt=.001, scaling=10.)
-    # spikeTrains = analogToSpikes.genSpikesLinearly(segmentedValues, dt=.001, scaling=20.)
 
     # Save
     outputList = [segmentedSpikesList, dataFile, spikeGenType, analgSingnalScaling] # We also want to store the location of the originating decomped data
@@ -397,10 +395,6 @@ def createDataDescriptionTxtFile(pMassFile=[], pMassDcmpFile=[], pMassDcmpSpkesF
             file.close()
 
 
-
-
-
-
 ########################################################################################################################
 # RUNNING METHODS
 ########################################################################################################################
@@ -413,8 +407,10 @@ if __name__ == "__main__":
     ####################################################################################################################
     # TESTING METHODS
     ####################################################################################################################
+    # You have to uncomment the method calls to run!
 
-    # print('Begin testing ... ... \n\n')
+    ####################################################################################################################
+    # TESTING 1D MOVING POINT MASS METHODS
 
     # CREATE AND SAVE SOME 1D MOVING MASS DATA
     #genAndSaveMoving1DMassData()
@@ -436,7 +432,7 @@ if __name__ == "__main__":
     #loadAndPlotDecomp1DMassData()
 
     # CREATE TXT FILE DESCRIPTIONS
-    createDataDescriptionTxtFile(pMassFile='movingPointMassData/pointMassData000.pkl',pMassDcmpFile='movingPointMassData/pointMassDataDecmp000.pkl',pMassDcmpSpkesFile='movingPointMassData/pointMassDataDecmpSpikes000.pkl' )
+    #createDataDescriptionTxtFile(pMassFile='movingPointMassData/pointMassData000.pkl',pMassDcmpFile='movingPointMassData/pointMassDataDecmp000.pkl',pMassDcmpSpkesFile='movingPointMassData/pointMassDataDecmpSpikes000.pkl' )
 
     ####################################################################################################################
     # GENERATE EXPERIMENTAL DATA
@@ -444,15 +440,35 @@ if __name__ == "__main__":
     # Here we actually will generate the data used in the experiments, we will need quite a bit of data. Note when
     # saving data the method zfill() seems pretty handy!
 
+    ####################################################################################################################
     # GENERATE 1D POINT MASS DATA
-    #numberOfTrials = 10
-    #topDirectory = 'movingPointMassData/'
-    #subDirectory = 'dataSet_00/'
-    #pMassDataName = 'pMassData'
-    #pMassDcmpDataName = 'pMassDataDcmp'
-    #pMassDcmpSpksDataName = 'pMassDcmpSpksData'
-    #fileType = '.pkl'
-    #First Step is to make the 1D Point Mass Data!
-    #saveName = topDirectory+subDirectory+pMassDataName+fileType
+    numberOfTrials = 1000
+    topDirectory = 'movingPointMassData/'
+    subDirectory = 'dataSet_00/'
+    dataIteration = 1
+    pMassDataName = 'pMassData'
+    pMassDcmpDataName = 'pMassDataDcmp'
+    pMassDcmpSpksDataName = 'pMassDcmpSpksData'
+    fileType = '.pkl'
+    # First Step is to make the 1D Point Mass Data,
+    saveName0 = topDirectory+subDirectory+pMassDataName+str(dataIteration).zfill(3)+fileType
+    genAndSaveMoving1DMassData(saveName=saveName0, Iterations=numberOfTrials)
+    # Now make the accompanying .txt file description.
+    createDataDescriptionTxtFile(pMassFile=saveName0)
+    # Second Step is to decompose the 1D Point Mass data into smaller receptive fields
+    saveName1 = topDirectory+subDirectory+pMassDcmpDataName+str(dataIteration).zfill(3)+fileType
+    decomposeMoving1DMassData(dataFile=saveName0,
+                              saveName=saveName1)
+    # Now make the accompanying .txt file description
+    createDataDescriptionTxtFile(pMassDcmpFile=saveName1)
+    # Third Step is to take the decomposed data and turn them into spike trains!
+    saveName2 = topDirectory+subDirectory+pMassDcmpSpksDataName+str(dataIteration).zfill(3)+fileType
+    decompedToSpikes1DMassData(dataFile=saveName1,
+                               saveName=saveName2)
+    # Now make the accompanying .txt file description
+    createDataDescriptionTxtFile(pMassDcmpSpkesFile=saveName2)
+
+
+
 
 
