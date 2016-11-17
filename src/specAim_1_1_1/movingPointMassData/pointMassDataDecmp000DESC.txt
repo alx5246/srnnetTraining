@@ -1,0 +1,12 @@
+1-D Moving Mass Decomposed Data Description
+
+Data here is generated from the decomposeMoving1DMassData() method
+
+FileName.......movingPointMassData/pointMassDataDecmp000.pkl
+InputDataFile..movingPointMassData/pointMassData000.pkl
+iterations.....10
+NumbOfGauss....10
+xStart.........0.0
+xStop..........5.0
+GausVarbl_b....0.5553883734704244
+dt.............0.001

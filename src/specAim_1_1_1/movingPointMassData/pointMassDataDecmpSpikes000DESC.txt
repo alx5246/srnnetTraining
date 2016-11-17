@@ -1,0 +1,9 @@
+1-D Moving mass Decomposed and Turned to Spikes Data Description
+
+Data here is generated from the decompedToSpikes1DMassData
+
+FileName.........movingPointMassData/pointMassDataDecmpSpikes000.pkl
+InputDataFile....movingPointMassData/pointMassDataDecmp000.pkl
+Iterations.......10
+Spike-Gen-Type...linearIntegral
+Signal-Scaling...20.0
