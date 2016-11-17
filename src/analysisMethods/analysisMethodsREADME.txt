@@ -6,7 +6,7 @@ README for folder analysisMethods
 DESCRIPTION
 
     All the primary analysis methods and operations will be here stored within this folder. These will be as generic as
-    possible to make them most applicable
+    possible to make them most applicable for all the experiments needed.
 
 FILES AND FOLDERS
 
