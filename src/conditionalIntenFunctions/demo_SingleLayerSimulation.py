@@ -218,7 +218,7 @@ def singleLayerSimulationNewAdapt(inputNetStruc, mainNetStruc, inputToMainConnec
 def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections, inputToMainConnWeights, mainToMainConnections, mainToMainConnWeights, inputSpikes):
     '''
     DESCRIPTION
-    This runs a new simulation with a Izh. RS neurons (slgihtly modified) along with a version of STDP + Homeostatsis
+    This runs a new simulation with a Izh. RS neurons (slgihtly modified) without any STDP or Homeostatsis
     developed in Carlson et al. 2013
 
     :param inputNetStruc: structure of input layer of neurons 2D numpy.array([[]]), size = numb. neurons X 4, in each
@@ -284,7 +284,7 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     """
 
     ####################################################################################################################
-    # Setting up Main Network Bodya of neuonrs
+    # Setting up Main Network Body of neurons
     ####################################################################################################################
 
     # Neuron Group, where we have one neuron now for each different iteration of the values we care about. The number
@@ -306,7 +306,7 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     P = SpikeGeneratorGroup(numpy.max(inds.astype(int))+1, inds.astype(int), times)
 
     ####################################################################################################################
-    # STDP + Homeostatis Synapses
+    # NO STDP or Homeostatis in Synapses
     ####################################################################################################################
 
     # Make the synapes between input to main neuron group
@@ -372,7 +372,7 @@ def singleLayerSimulationNew(inputNetStruc, mainNetStruc, inputToMainConnections
     # RUN
     ####################################################################################################################
 
-    # Setting compilation for simpley compiling inside a for-loop (this gets called inside a for-loop outside), and not
+    # Setting compilation for simply compiling inside a for-loop (this gets called inside a for-loop outside), and not
     # with anything multiprocessing.
 
     runTime = numpy.max(times)
