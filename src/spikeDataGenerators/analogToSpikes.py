@@ -167,7 +167,10 @@ def genSpikesLinearly(xData, dt, scaling=1.0):
     :param xData: 2D numpy.array of size [n,m], where n is a complete time-series, and m is the number of different signals
     :param dt: the time discritization
     :param scaling: float, if we want to scale up the input
-    :return: list of lists, where each sublist has the spike times.
+    :return: list of lists, where each sublist has the spike times. Given xdata is a 2D numpy.array, (number of
+             time-steps is equal to the number of rows, and the number of seperate channels or signals is equal to the
+             number of columns) we take each signal (one column) and turn in into a seperate spike-train stored in a list.
+             Thus we return a list of lists.
     """
     # Iterate over all the different input signals
     outputSpikeTrains = []
@@ -188,6 +191,7 @@ def genSpikesLinearly(xData, dt, scaling=1.0):
         # Save the new spike train to the output
         outputSpikeTrains.append(spikeTrain)
     return outputSpikeTrains
+
 
 ########################################################################################################################
 # Internal Unit Testing

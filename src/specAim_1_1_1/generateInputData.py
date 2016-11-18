@@ -31,6 +31,8 @@ def genAndSaveMoving1DMassData(saveName='movingPointMassData/pointMassData000.pk
     Here we call the methods repeatedly to make instances of the 1D moving mass. Of these n examples, we then put them
     into a list, and then save them in the appropriate folder.
     :return: N/A (we save data to a file), the list saved is [listOfTrials, xmin, xmax, vmin, vmax, amin, amax, dt, tmax]
+             where listOfTrials is a list of movement trails [ [positionArray, timeArray], [positionArray, timeArray] ..
+             ., ...]
     """
     #How many iterations we want to include
     #Iterations = 10 # No more hard coding! This is now an input into the function.
@@ -79,7 +81,11 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     :param dataFile: string, the location where we have the data stored
     :param saveName: string, the location where we want to save the results
     :return: N/A (we save data to a file), the list saved is [list of segmented 1D trails (numpy.arrays), gCenters (
-            numpy.array), b (scalar), file name of original data (string)]
+            numpy.array), b (scalar), file name of original data (string)]. Importantly the list-of-segmented-1D-trials
+            is a list of 2D numpy.arrays() that looks like [ 2D-array, 2D-array, .... , 2D-array]. This 2D array is
+            the 1D set of values decomposed into seperate components, where the number of rows is equal to the number of
+            original time-steps or number of original x-values, and the number of columns is the number of decomposed
+            signals.
     """
     # Load in the saved 1D moving mass. Inside the loaded list of lists, we will have a list that has a bunch of
     # seperate 1D numpy.arrays that represent the position of the mass through different random trials.
