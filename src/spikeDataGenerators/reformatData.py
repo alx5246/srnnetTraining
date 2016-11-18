@@ -42,6 +42,8 @@ def convertSpikeListsToBrainInput(spikeLists):
             outArray[index:index+len(someList), 0] = i
             outArray[index:index+len(someList), 1] = numpy.asarray(someList)
             index += len(someList)
+        # Now sort the output by spike times
+        outArray = outArray[outArray[:,1].argsort()]
         return outArray
 
     # Now I will define a function so I can recurse into the spikeLists thing
