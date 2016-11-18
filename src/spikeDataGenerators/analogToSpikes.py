@@ -136,7 +136,7 @@ def genSpikesWithTimeRescaling(xData, dt, scaling=1.0):
     :param xData: 2D numpy.array of size [n,m], where n is a complete time-series, and m is the number of different signals
     :param dt: the time discritization
     :param scaling: float, if we want to scale up the input
-    :return: list []
+    :return: list of lists, where each sublist has the spike times.
     """
     # Iterate over all the different input signals
     outputSpikeTrains = []
@@ -167,7 +167,7 @@ def genSpikesLinearly(xData, dt, scaling=1.0):
     :param xData: 2D numpy.array of size [n,m], where n is a complete time-series, and m is the number of different signals
     :param dt: the time discritization
     :param scaling: float, if we want to scale up the input
-    :return: list []
+    :return: list of lists, where each sublist has the spike times.
     """
     # Iterate over all the different input signals
     outputSpikeTrains = []
