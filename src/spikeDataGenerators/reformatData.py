@@ -67,21 +67,72 @@ def convertSpikeListsToBrainInput(spikeLists, combineData=False, timeInjection=5
         outArray = outArray[outArray[:,1].argsort()]
         return outArray
 
-    # Now I will define a function so I can recurse into the spikeLists thing
+    # Now I will retryp to make a better more compact recursing functoin
     def incrementInside(inputList):
-        if isinstance(inputList[0],list):
-            if isinstance(inputList[0][0],list):
-                # If we have a list within a list, we are not yet deep enough, though we will have to begin to iterate
-                subList = []
-                for i in range(len(inputList)):
-                    subList.append(incrementInside(inputList[0]))
-                return subList
-            else:
-                # We are deep enough
-                return altSpikeStruct(inputList)
+        # I can't do anything with empty so return empty
+        if len(inputList)==0:
+            return ['error']
+        # Okay it is not an empty list, so what is inside this list?
         else:
-            # If we are deep enough we call the spike-times to numpy.array function
-            return altSpikeStruct([inputList])
+            # Determine the shit stored at each index of this list
+            typeList = [] # This is our memory
+            for sub in inputList:
+                if isinstance(sub,list):
+                    if len(sub)>0:
+                        if isinstance(sub[0],list):
+                            typeList.append('ll') # 'll' stands for list-of-list
+                        else:
+                            typeList.append('le') # 'le' stand for list-end
+                    else:
+                        typeList.append('le') # 'le' stand for list-end
+                else:
+                    typeList.append('e') # 'e' end, meaning a numeric number most likely
+            # We now ....... make some simplifications, we are only going to handle the cases that actually make sense
+            # (as we are making the data). These cases are when all the entries are of the same type, ie. [ 'll', 'll',
+            # ... 'll']. If we are making the data there should not be mixed types so I am going to disregard this
+            # this possibility.
+            if all(dmy=='ll' for dmy in typeList):
+                # This means we need to make a new list and recurse again!
+                subLists = []
+                for sub in inputList:
+                    subLists.append(incrementInside(sub))
+                return subLists
+            elif all(dmy=='le' for dmy in typeList):
+                # This means we to send all the sub-lists here into the transformation function
+                return altSpikeStruct(inputList)
+            elif all(dmy=='e' for dmy in typeList):
+                # This means there is not list of lists, just one data signal
+                return altSpikeStruct([inputList])
+            else:
+                # In this case, things do not make sense, so we pass this back
+                return ['error']
+
+
+    # Now I will define a function so I can recurse into the spikeLists thing, I need to take care of the fact some
+    # of the deep lists may be empty!
+    # def incrementInside(inputList):
+    #     if len(inputList[0])>0:
+    #         if isinstance(inputList[0],list):
+    #             if len(inputList[0][0])>0:
+    #                 if isinstance(inputList[0][0],list):
+    #                     # If we have a list within a list, we are not yet deep enough, though we will have to begin to iterate
+    #                     subList = []
+    #                     for i in range(len(inputList)):
+    #                         subList.append(incrementInside(inputList[0]))
+    #                     return subList
+    #                 else:
+    #                     # We are deep enough
+    #                     return altSpikeStruct(inputList)
+    #             else:
+    #                 return(numpy.array([]))
+    #         else:
+    #             # If we are deep enough we call the spike-times to numpy.array function
+    #             return altSpikeStruct([inputList])
+    #     else:
+    #         return numpy.array([])
+
+
+
 
     # Now we will apply the recursion which will inherently apply the conversion of list of lists to 2D numpy.array or
     # 2D numpy.arrays.
@@ -228,17 +279,19 @@ def combineInputSequencesRandom(spikeLists, timeInjection=5., lengthSequence=10)
 
 if __name__ == "__main__":
 
+    # Used to make test data
     import random
 
     # TESTING convertSpikeListsToBrainInput()
-    # Test 1 : a spike list of spike times
+    # Test 1 : a list of spike times [1.2, 3.2, ... ,5.1]
     spikeList = [] # List that will have list of spikes times
     for i in range(5):
         spikeList.append(random.random())
         if len(spikeList)>2:
             spikeList[-1] = spikeList[-1] + spikeList[-2]
     outputSpikesFormatted = convertSpikeListsToBrainInput(spikeList)
-    print("\n")
+    print("\nConvert a list of spike times to 2D array")
+    print("The result should be a single 2D numpy.array")
     print(outputSpikesFormatted )
 
     # Test 2: list of lists (each sub-list is has spike times, each sub-list is a seperate signal)
@@ -251,18 +304,21 @@ if __name__ == "__main__":
                 subSpikeList[-1] = subSpikeList[-1] + subSpikeList[-2]
         spikeList.append(subSpikeList)
     outputSpikesFormatted = convertSpikeListsToBrainInput(spikeList)
-    print("\n")
+    print("\nConvert a list of spike-lists")
+    print("The result should be a single 2D numpy.array")
     print(outputSpikesFormatted)
 
     # Test 3: Two spike lists in a bigger list
     spikeList = [spikeList, spikeList, spikeList]
     outputSpikesFormatted = convertSpikeListsToBrainInput(spikeList)
-    print("\n")
+    print("\nConver a list of lists of spike-lists")
+    print("The result should be a list of 2D numpy.arrays")
     print(outputSpikesFormatted)
 
-    # Test 4: Now we want to combine 2D arrays!
+    # Test 4: Now we want to combine 2D arrays (using one of the function calls)
     outputSpikesFormatted = convertSpikeListsToBrainInput(spikeList, combineData=True, timeInjection=5.)
-    print("\n")
+    print("\nConvert a list of lists of spikes into a single combined array!")
+    print("The result should be a single 2D numpy.array")
     print(outputSpikesFormatted)
 
     # Test 5: test the generation of sequences of data.
@@ -278,11 +334,10 @@ if __name__ == "__main__":
         spikeList.append(subSpikeList)
     # Convert list of lists of sub-lists -> list of 2D numpy.arrays with the orderd spike times
     outputSpikesFormatted = convertSpikeListsToBrainInput([spikeList,spikeList])
-    print("\n")
-    print(outputSpikesFormatted)
-    print(type(outputSpikesFormatted))
     # Now see if we can combine the sequences.
     sequence = combineInputSequencesNonRandom(outputSpikesFormatted, timeInjection=5., sequence=numpy.array([0,1,0]))
+    print("\nConver a list of lists of spike-lists into a single array, and then combine them into a single")
+    print("The result should be a single 2D numpy.array")
     print(sequence[0])
 
 
