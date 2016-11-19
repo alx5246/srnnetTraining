@@ -272,7 +272,7 @@ if __name__ == "__main__":
         subSpikeList = [] # This sub-list is supposed to represent one signal of many (other sub-lists)
         for j in range(5):
             subSpikeList.append(random.random())
-            # Make times cummulative 
+            # Make times cummulative
             if len(subSpikeList) > 2:
                 subSpikeList[-1] = subSpikeList[-1] + subSpikeList[-2]
         spikeList.append(subSpikeList)
