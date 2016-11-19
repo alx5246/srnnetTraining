@@ -5,6 +5,19 @@
 #   Here I am going to have methods to create and save data for this experiment. The methods below are VERY hardcoded,
 #   but rely on other methods that are generic. They are hardcoded so we can generate very specific data (original data,
 #   decomposed original data, and then spiking from analog)
+#
+#   The process of data generation is ordered. That is functions get called in some specific order and work on the
+#   output of other functions here within. For the 1-D mass movement we have a particular protocol,
+#       (1) create some orignal trajectories using genAndSaveMoving1DMassData()
+#       (2) take original trajectories and decompose into a number of singnals (multiple neuron outputs) using
+#           decomposeMoving1DMassData()
+#       (3) take decomposed analog signals and create some replace with spike trains using decompedToSpikes1DMassData()
+#       (4) take spike trains and convert into a form that can be used as input into brain simulations using
+#           convertSpikeseToBrainForm()
+#       (5) take the data streams that can be used in brain and .... turn them into final form data
+#
+#   At the end of this file, there is a __main__() and that is where we will actually generate the data used for the
+#   exeriments. There you can alter parameters to make new data.
 
 import matplotlib.pyplot as plt
 import numpy
@@ -20,12 +33,13 @@ sys.path.append(os.path.abspath("../"))
 from dataGenerators import movingPointMass1D
 from spikeDataGenerators import decompDimensions
 from spikeDataGenerators import analogToSpikes
+from spikeDataGenerators import reformatData
 
 ########################################################################################################################
 # METHODS FOR CREATING 1D MOVING MASS DATA (SMOOTH, DECOMPOSED, SPIKING)
 ########################################################################################################################
 
-def genAndSaveMoving1DMassData(saveName='movingPointMassData/pointMassData000.pkl',Iterations=10):
+def genAndSaveMoving1DMassData(saveName='movingPointMassData/testPointMassData000.pkl',Iterations=10):
     """
     DESCRIPTION
     Here we call the methods repeatedly to make instances of the 1D moving mass. Of these n examples, we then put them
@@ -54,7 +68,7 @@ def genAndSaveMoving1DMassData(saveName='movingPointMassData/pointMassData000.pk
     outputFile.close()
 
 
-def loadAndPlot1DMassData(dataFile='movingPointMassData/pointMassData000.pkl'):
+def loadAndPlot1DMassData(dataFile='movingPointMassData/testPointMassData000.pkl'):
     """
     DESCRIPTION
     We load in some of the saved data from 1D moving mass, and then plot what those trajectories look like. This method
@@ -63,7 +77,7 @@ def loadAndPlot1DMassData(dataFile='movingPointMassData/pointMassData000.pkl'):
     :return: N/A we just plot stuff out.
     """
     # Load the data back
-    inputDataFile = open("movingPointMassData/pointMassData000.pkl", "rb")
+    inputDataFile = open(dataFile, "rb")
     dataOut = pickle.load(inputDataFile)
     inputDataFile.close()
     # Iterate over the different saved trajectores and plot out the results.
@@ -73,7 +87,7 @@ def loadAndPlot1DMassData(dataFile='movingPointMassData/pointMassData000.pkl'):
     plt.show()
 
 
-def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl', saveName='movingPointMassData/pointMassDataDecmp000.pkl' ):
+def decomposeMoving1DMassData(dataFile='movingPointMassData/testPointMassData000.pkl', saveName='movingPointMassData/testPointMassDataDecmp000.pkl' ):
     """
     DESCRIPTION
     This is made to take 1D point mass trails, given the file name is given, and then subseqently make normal functions
@@ -121,7 +135,7 @@ def decomposeMoving1DMassData(dataFile='movingPointMassData/pointMassData000.pkl
     outputFile.close()
 
 
-def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmp000.pkl'):
+def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/testPointMassDataDecmp000.pkl'):
     """
     DESCRIPTION
     We load in some of the saved data from 1D moving mass that have been decomposed into different receptive regions.
@@ -172,7 +186,7 @@ def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmp
         plt.show()
 
 
-def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp000.pkl', saveName='movingPointMassData/pointMassDataDecmpSpikes000.pkl'):
+def decompedToSpikes1DMassData(dataFile='movingPointMassData/testPointMassDataDecmp000.pkl', saveName='movingPointMassData/testPointMassDataDecmpSpikes000.pkl'):
     """
     DESCRIPTION
     We load in the saved data, the decomposition of 1D moving mass data over n receptive feilds, and then convert each
@@ -225,7 +239,7 @@ def decompedToSpikes1DMassData(dataFile='movingPointMassData/pointMassDataDecmp0
     outputFile.close()
 
 
-def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmpSpikes000.pkl'):
+def loadAndPlotSpike1DMassData(dataFile='movingPointMassData/testPointMassDataDecmpSpikes000.pkl'):
 
 
     # Load in modules to handle the 3D plot (which I still do not well understand)
@@ -310,7 +324,35 @@ def loadAndPlotDecomp1DMassData(dataFile='movingPointMassData/pointMassDataDecmp
         plt.show()
 
 
-def createDataDescriptionTxtFile(pMassFile=[], pMassDcmpFile=[], pMassDcmpSpkesFile=[]):
+def convertSpikeseToBrainForm(dataFile='movingPointMassData/testPointMassDataDecmpSpikes000.pkl', saveName='movingPointMassData/testPointMassDataBrainForm000.pkl'):
+    """
+    DESCRIPTION
+    After we have generated some trails of 1D mass movements, then decomposed these by use of overlapping receptive
+    fields, and then converting the decomposes signals into spike trains, we still need to convert to convienent
+    format as input into a brian simulation. This is done here. Essentially at this point we will be loading up a list
+    of sublists, where each list is one one time-varying signal, and each sub list holds a spike train from one of the
+    decomposed signals. However we will probably be loading in a list of these lists, we then can convert
+    into a list of 2D numpy.arrays.
+    :param dataFile: The file that has the spiking decomped data
+    :param saveName: The file where we put the output
+    :return: [outputList, outputFile]
+    """
+    # Load the data back (this is the spike version of the decomped values)
+    inputDataFile = open(dataFile, "rb")
+    dataOut = pickle.load(inputDataFile)  # The saved list from turning decomped signals into spikes, [segmentedSpikeList, dataFileName]
+    inputDataFile.close()
+    segmentedSpikesList = dataOut[0]
+    # Now change the format the we tend to use as inptu into brian simulations.
+    convertedData = reformatData.convertSpikeListsToBrainInput(segmentedSpikesList)
+    print(len(convertedData))
+    # Now form the output data
+    outputList = [convertedData, dataFile]
+    outputFile = open(saveName, "wb")
+    pickle.dump(outputList, outputFile)
+    outputFile.close()
+
+
+def createDataDescriptionTxtFile(pMassFile=[], pMassDcmpFile=[], pMassDcmpSpkesFile=[], pMassBrianFile=[]):
     """
     DESCRIPTION
     Here I want to create a .txt file that will describe the data saved in a particular set of files.
@@ -399,6 +441,20 @@ def createDataDescriptionTxtFile(pMassFile=[], pMassDcmpFile=[], pMassDcmpSpkesF
             file.write("\nSpike-Gen-Type..."+spikeGenType)
             file.write("\nSignal-Scaling..."+str(analogScl))
             file.close()
+    if isinstance(pMassBrianFile, str):
+        if os.path.isfile(pMassBrianFile):
+            # Load in the data to see what it has in there
+            inputDataFile = open(pMassBrianFile, "rb")
+            dataOut = pickle.load(inputDataFile)
+            inputDataFile.close()
+            # Now we need to write a description of what the data is! [spikesInBrianForm, dataFile, origDataFile]
+            descpFName = pMassBrianFile[:-4]+"DESC.txt"
+            file = open(descpFName, 'w')
+            file.write("1-D Moving mass data decomposed, turned into spikes, and then turned into a brain sim. compatible format\n")
+            file.write("\n Data here is generated from the convertSpikeseToBrainForm()\n")
+            file.write("\nFilename............................."+pMassBrianFile)
+            file.write("\nOriginating Decompled Data File .... "+dataOut[1])
+            file.close()
 
 
 ########################################################################################################################
@@ -409,6 +465,7 @@ def createDataDescriptionTxtFile(pMassFile=[], pMassDcmpFile=[], pMassDcmpSpkesF
 
 if __name__ == "__main__":
 
+    print('... in main ... ')
 
     ####################################################################################################################
     # TESTING METHODS
@@ -435,10 +492,15 @@ if __name__ == "__main__":
     #decompedToSpikes1DMassData()
 
     # PLOT THE SPIKED VERSIONOF THE DECOMPOSED DATA FOR ACCURACY OF THE APPROACH
-    #loadAndPlotDecomp1DMassData()
+    #loadAndPlotSpike1DMassData()
+
+    #convertSpikeseToBrainForm(dataFile='movingPointMassData/testPointMassDataDecmpSpikes000.pkl')
+
 
     # CREATE TXT FILE DESCRIPTIONS
-    #createDataDescriptionTxtFile(pMassFile='movingPointMassData/pointMassData000.pkl',pMassDcmpFile='movingPointMassData/pointMassDataDecmp000.pkl',pMassDcmpSpkesFile='movingPointMassData/pointMassDataDecmpSpikes000.pkl' )
+    #createDataDescriptionTxtFile(pMassFile='movingPointMassData/testPointMassData000.pkl', pMassDcmpFile='movingPointMassData/testPointMassDataDecmp000.pkl', pMassDcmpSpkesFile='movingPointMassData/testPointMassDataDecmpSpikes000.pkl', pMassBrianFile='movingPointMassData/testPointMassDataBrainForm000.pkl' )
+
+
 
     ####################################################################################################################
     # GENERATE EXPERIMENTAL DATA
@@ -449,12 +511,13 @@ if __name__ == "__main__":
     ####################################################################################################################
     # GENERATE 1D POINT MASS DATA
     numberOfTrials = 1000
-    topDirectory = 'movingPointMassData/'
-    subDirectory = 'dataSet_00/'
-    dataIteration = 1
-    pMassDataName = 'pMassData'
-    pMassDcmpDataName = 'pMassDataDcmp'
-    pMassDcmpSpksDataName = 'pMassDcmpSpksData'
+    topDirectory   = 'movingPointMassData/'
+    subDirectory   = 'dataSet/'
+    dataIteration  = 0
+    pMassDataName  = 'analogSignals/pMassData'
+    pMassDcmpDataName = 'decomposedSignals/pMassDataDcmp'
+    pMassDcmpSpksDataName = 'spikingSignals/pMassDcmpSpksData'
+    pMassBrianFormDataName = 'brianFormSignals/pMassBrianInputData'
     fileType = '.pkl'
     # First Step is to make the 1D Point Mass Data,
     saveName0 = topDirectory+subDirectory+pMassDataName+str(dataIteration).zfill(3)+fileType
@@ -473,6 +536,12 @@ if __name__ == "__main__":
                                saveName=saveName2)
     # Now make the accompanying .txt file description
     createDataDescriptionTxtFile(pMassDcmpSpkesFile=saveName2)
+    # Forth Step is to take the decomposed spiking signals and turn into a brian simulation acceptable form
+    saveName3 = topDirectory+subDirectory+pMassBrianFormDataName+str(dataIteration).zfill(3)+fileType
+    convertSpikeseToBrainForm(dataFile=saveName2,
+                              saveName=saveName3)
+    # Now make the accompanying .txt file description
+    createDataDescriptionTxtFile(pMassBrianFile=saveName3)
 
 
 
